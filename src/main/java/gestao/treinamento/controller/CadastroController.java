@@ -1,7 +1,9 @@
 package gestao.treinamento.controller;
 
+import gestao.treinamento.model.dto.TrabalhadorDTO;
 import gestao.treinamento.model.entidade.Instrutor;
 import gestao.treinamento.service.CadastroInstrutoresService;
+import gestao.treinamento.service.CadastroTrabalhadoresService;
 import gestao.treinamento.util.ApiResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,10 +21,12 @@ public class CadastroController {
 
     @Autowired
     private CadastroInstrutoresService serviceInstrutores;
+    private CadastroTrabalhadoresService serviceTrabalhadores;
+
 
     // GET: Buscar todos os instrutores
     @GetMapping("/instrutores")
-    public ResponseEntity<ApiResponse<List<Instrutor>>> cadastroProfessor() {
+    public ResponseEntity<ApiResponse<List<Instrutor>>> cadastroInstrutor() {
         List<Instrutor> instrutores = serviceInstrutores.consultaCadastro();
         return ResponseEntity.ok(new ApiResponse<>(true, "Instrutores recuperados com sucesso", instrutores));
     }
@@ -54,6 +58,14 @@ public class CadastroController {
     public ResponseEntity<ApiResponse<Void>> deletarInstrutores(@RequestBody List<Long> ids) {
         serviceInstrutores.deletarInstrutores(ids);
         return ResponseEntity.ok(new ApiResponse<>(true, "Instrutores deletados com sucesso", null));
+    }
+
+    // GET: Buscar todos os trabalhadores
+    @GetMapping("/trabalhadores")
+    public ResponseEntity<ApiResponse<List<TrabalhadorDTO>>> getTodosTrabalhadores() {
+        List<TrabalhadorDTO> trabalhadores = serviceTrabalhadores.consultaCadastro();
+        ApiResponse<List<TrabalhadorDTO>> response = new ApiResponse<>(true, "Trabalhadores recuperados com sucesso", trabalhadores);
+        return ResponseEntity.ok(response);
     }
 
 

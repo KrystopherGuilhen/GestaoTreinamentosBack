@@ -10,7 +10,7 @@ import java.util.Set;
 public class Empresa {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "empresa_id")
+    @Column(name = "id")
     private Long id;
 
     @Column(name = "nome", nullable = false, length = 150)
@@ -25,7 +25,7 @@ public class Empresa {
     @Column(name = "telefone", nullable = false, length = 20)
     private String telefone;
 
-    @Column(name = "cnpj", nullable = false, unique = true, length = 14)
+    @Column(name = "cnpj", nullable = false, unique = true, length = 18)
     private String cnpj;
 
     @Column(name = "nome_responsavel_empresa", nullable = false, length = 150)
