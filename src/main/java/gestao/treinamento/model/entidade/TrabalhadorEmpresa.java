@@ -21,9 +21,4 @@ public class TrabalhadorEmpresa {
     @JoinColumn(name = "empresa_id", nullable = false)
     private Empresa empresa;
 
-//    @Column(name = "nome_empresa", nullable = false, length = 150)
-//    private String nomeEmpresa;
-//
-//    @Column(name = "cnpj", nullable = false, unique = true, length = 18)
-//    private String cnpj;
 }

@@ -5,6 +5,7 @@ import gestao.treinamento.model.entidade.Instrutor;
 import gestao.treinamento.service.CadastroInstrutoresService;
 import gestao.treinamento.service.CadastroTrabalhadoresService;
 import gestao.treinamento.util.ApiResponse;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -65,6 +66,40 @@ public class CadastroController {
     public ResponseEntity<ApiResponse<List<TrabalhadorDTO>>> getTodosTrabalhadores() {
         List<TrabalhadorDTO> trabalhadores = serviceTrabalhadores.consultaCadastro();
         ApiResponse<List<TrabalhadorDTO>> response = new ApiResponse<>(true, "Trabalhadores recuperados com sucesso", trabalhadores);
+        return ResponseEntity.ok(response);
+    }
+
+    // POST: Criar novo trabalhador
+    @PostMapping("/trabalhadores")
+    public ResponseEntity<ApiResponse<TrabalhadorDTO>> criarTrabalhador(@RequestBody @Valid TrabalhadorDTO trabalhadorDTO) {
+        TrabalhadorDTO trabalhadorCriado = serviceTrabalhadores.criarTrabalhador(trabalhadorDTO);
+        ApiResponse<TrabalhadorDTO> response = new ApiResponse<>(true, "Trabalhador criado com sucesso", trabalhadorCriado);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    // PUT: Atualizar trabalhador por ID
+    @PutMapping("trabalhadores/{id}")
+    public ResponseEntity<ApiResponse<TrabalhadorDTO>> atualizarTrabalhador(
+            @PathVariable Long id,
+            @RequestBody @Valid TrabalhadorDTO trabalhadorDTO) {
+        TrabalhadorDTO trabalhadorAtualizado = serviceTrabalhadores.atualizarTrabalhador(id, trabalhadorDTO);
+        ApiResponse<TrabalhadorDTO> response = new ApiResponse<>(true, "Trabalhador atualizado com sucesso", trabalhadorAtualizado);
+        return ResponseEntity.ok(response);
+    }
+
+    // DELETE: Excluir trabalhador por ID
+    @DeleteMapping("trabalhadores/{id}")
+    public ResponseEntity<ApiResponse<Void>> excluirTrabalhador(@PathVariable Long id) {
+        serviceTrabalhadores.excluirTrabalhador(id);
+        ApiResponse<Void> response = new ApiResponse<>(true, "Trabalhador excluído com sucesso", null);
+        return ResponseEntity.ok(response);
+    }
+
+    // DELETE: Excluir múltiplos trabalhadores por lista de IDs
+    @DeleteMapping("/trabalhadores")
+    public ResponseEntity<ApiResponse<Void>> excluirTrabalhadores(@RequestBody List<Long> ids) {
+        serviceTrabalhadores.excluirTrabalhadores(ids);
+        ApiResponse<Void> response = new ApiResponse<>(true, "Trabalhadores excluídos com sucesso", null);
         return ResponseEntity.ok(response);
     }
 

@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.ToString;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -43,7 +44,7 @@ public class Trabalhador {
 
     @OneToMany(mappedBy = "trabalhador", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
-    private List<TrabalhadorEmpresa> empresasVinculadas;
+    private List<TrabalhadorEmpresa> empresasVinculadas = new ArrayList<>();
 
 //    @OneToMany(mappedBy = "trabalhador", cascade = CascadeType.ALL, orphanRemoval = true)
 //    private Set<TrabalhadorEmpresa> empresasVinculadas;
