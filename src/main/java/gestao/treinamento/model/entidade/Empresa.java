@@ -2,7 +2,6 @@ package gestao.treinamento.model.entidade;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import java.util.Set;
 
 @Data
 @Entity

@@ -4,7 +4,7 @@ import gestao.treinamento.model.dto.TrabalhadorDTO;
 import gestao.treinamento.model.entidade.Empresa;
 import gestao.treinamento.model.entidade.Trabalhador;
 import gestao.treinamento.model.entidade.TrabalhadorEmpresa;
-import gestao.treinamento.repository.CadastroEmpresaRepository;
+import gestao.treinamento.repository.CadastroEmpresasRepository;
 import gestao.treinamento.repository.CadastroTrabalhadorEmpresaRepository;
 import gestao.treinamento.repository.CadastroTrabalhadoresRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -24,7 +24,7 @@ public class CadastroTrabalhadoresService {
 
     @Autowired
     private final CadastroTrabalhadoresRepository repository;
-    private final CadastroEmpresaRepository empresaRepository;
+    private final CadastroEmpresasRepository empresaRepository;
     private final CadastroTrabalhadorEmpresaRepository trabalhadorEmpresaRepository;
 
     // GET: Buscar todos os trabalhadores

@@ -1,9 +1,12 @@
 package gestao.treinamento.controller;
 
+import gestao.treinamento.model.dto.CursoDTO;
+import gestao.treinamento.model.dto.PalestraDTO;
 import gestao.treinamento.model.dto.TrabalhadorDTO;
+import gestao.treinamento.model.entidade.Empresa;
 import gestao.treinamento.model.entidade.Instrutor;
-import gestao.treinamento.service.CadastroInstrutoresService;
-import gestao.treinamento.service.CadastroTrabalhadoresService;
+import gestao.treinamento.model.entidade.Unidade;
+import gestao.treinamento.service.*;
 import gestao.treinamento.util.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -23,6 +26,10 @@ public class CadastroController {
     @Autowired
     private CadastroInstrutoresService serviceInstrutores;
     private CadastroTrabalhadoresService serviceTrabalhadores;
+    private CadastroEmpresasService serviceEmpresas;
+    private CadastroUnidadesService serviceUnidades;
+    private CadastroCursosService serviceCursos;
+    private CadastroPalestrasService servicePalestras;
 
 
     // GET: Buscar todos os instrutores
@@ -103,5 +110,159 @@ public class CadastroController {
         return ResponseEntity.ok(response);
     }
 
+    // GET: Buscar todas as empresa
+    @GetMapping("/empresas")
+    public ResponseEntity<ApiResponse<List<Empresa>>> cadastroEmpresa() {
+        List<Empresa> empresas = serviceEmpresas.consultaCadastro();
+        return ResponseEntity.ok(new ApiResponse<>(true, "Empresas recuperadas com sucesso", empresas));
+    }
 
+    // POST: Criar um nova empresa
+    @PostMapping("/empresas")
+    public ResponseEntity<ApiResponse<Empresa>> criarEmpresas(@RequestBody Empresa empresa) {
+        Empresa novaEmpresa = serviceEmpresas.salvarEmpresa(empresa);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiResponse<>(true, "Empresa criada com sucesso", novaEmpresa));
+    }
+
+    // PUT: Atualizar uma empresa existente
+    @PutMapping("/empresas/{id}")
+    public ResponseEntity<ApiResponse<Empresa>> atualizarEmpresa(@PathVariable Long id, @RequestBody Empresa empresa) {
+        Empresa empresaAtualizada = serviceEmpresas.atualizarEmpresa(id, empresa);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Empresa atualizada com sucesso", empresaAtualizada));
+    }
+
+    // DELETE: Deletar uma empresa pelo ID
+    @DeleteMapping("/empresas/{id}")
+    public ResponseEntity<ApiResponse<Void>> deletarEmpresa(@PathVariable Long id) {
+        serviceEmpresas.deletarEmpresa(id);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Empresa deletada com sucesso", null));
+    }
+
+    // DELETE múltiplo: Deletar várias empresas pelos IDs
+    @DeleteMapping("/empresas")
+    public ResponseEntity<ApiResponse<Void>> deletarEmpresas(@RequestBody List<Long> ids) {
+        serviceEmpresas.deletarEmpresas(ids);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Empresas deletadas com sucesso", null));
+    }
+
+    // GET: Buscar todas as unidade
+    @GetMapping("/unidades")
+    public ResponseEntity<ApiResponse<List<Unidade>>> cadastrounidade() {
+        List<Unidade> unidades = serviceUnidades.consultaCadastro();
+        return ResponseEntity.ok(new ApiResponse<>(true, "Unidades recuperadas com sucesso", unidades));
+    }
+
+    // POST: Criar uma nova unidade
+    @PostMapping("/unidades")
+    public ResponseEntity<ApiResponse<Unidade>> criarUnidade(@RequestBody Unidade unidade) {
+        Unidade novaUnidade = serviceUnidades.salvarUnidade(unidade);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiResponse<>(true, "Unidade criado com sucesso", novaUnidade));
+    }
+
+    // PUT: Atualizar uma unidade existente
+    @PutMapping("/unidades/{id}")
+    public ResponseEntity<ApiResponse<Unidade>> atualizarUnidade(@PathVariable Long id, @RequestBody Unidade unidade) {
+        Unidade unidadeAtualizada = serviceUnidades.atualizarUnidade(id, unidade);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Unidade atualizado com sucesso", unidadeAtualizada));
+    }
+
+    // DELETE: Deletar uma unidade pelo ID
+    @DeleteMapping("/unidades/{id}")
+    public ResponseEntity<ApiResponse<Void>> deletarUnidade(@PathVariable Long id) {
+        serviceUnidades.deletarUnidade(id);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Unidade deletado com sucesso", null));
+    }
+
+    // DELETE múltiplo: Deletar varias unidades pelos IDs
+    @DeleteMapping("/unidades")
+    public ResponseEntity<ApiResponse<Void>> deletarUnidades(@RequestBody List<Long> ids) {
+        serviceUnidades.deletarUnidades(ids);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Unidades deletadas com sucesso", null));
+    }
+
+    // GET: Buscar todos os cursos
+    @GetMapping("/cursos")
+    public ResponseEntity<ApiResponse<List<CursoDTO>>> getTodosCursos() {
+        List<CursoDTO> cursos = serviceCursos.consultaCadastro();
+        ApiResponse<List<CursoDTO>> response = new ApiResponse<>(true, "cursos recuperados com sucesso", cursos);
+        return ResponseEntity.ok(response);
+    }
+
+    // POST: Criar novo curso
+    @PostMapping("/cursos")
+    public ResponseEntity<ApiResponse<CursoDTO>> criarCurso(@RequestBody @Valid CursoDTO cursoDTO) {
+        CursoDTO cursoCriado = serviceCursos.criarCurso(cursoDTO);
+        ApiResponse<CursoDTO> response = new ApiResponse<>(true, "Curso criado com sucesso", cursoCriado);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    // PUT: Atualizar curso por ID
+    @PutMapping("cursos/{id}")
+    public ResponseEntity<ApiResponse<CursoDTO>> atualizarCurso(
+            @PathVariable Long id,
+            @RequestBody @Valid CursoDTO cursoDTO) {
+        CursoDTO cursoAtualizado = serviceCursos.atualizarCurso(id, cursoDTO);
+        ApiResponse<CursoDTO> response = new ApiResponse<>(true, "Curso atualizado com sucesso", cursoAtualizado);
+        return ResponseEntity.ok(response);
+    }
+
+    // DELETE: Excluir curso por ID
+    @DeleteMapping("cursos/{id}")
+    public ResponseEntity<ApiResponse<Void>> excluirCurso(@PathVariable Long id) {
+        serviceCursos.excluirCurso(id);
+        ApiResponse<Void> response = new ApiResponse<>(true, "Curso excluído com sucesso", null);
+        return ResponseEntity.ok(response);
+    }
+
+    // DELETE: Excluir múltiplos cursos por lista de IDs
+    @DeleteMapping("/cursos")
+    public ResponseEntity<ApiResponse<Void>> excluirCursos(@RequestBody List<Long> ids) {
+        serviceCursos.excluirCursos(ids);
+        ApiResponse<Void> response = new ApiResponse<>(true, "Cursos excluídos com sucesso", null);
+        return ResponseEntity.ok(response);
+    }
+
+    // GET: Buscar todos os palestra
+    @GetMapping("/palestras")
+    public ResponseEntity<ApiResponse<List<PalestraDTO>>> getTodosPalestra() {
+        List<PalestraDTO> palestra = servicePalestras.consultaCadastro();
+        ApiResponse<List<PalestraDTO>> response = new ApiResponse<>(true, "Palestra recuperados com sucesso", palestra);
+        return ResponseEntity.ok(response);
+    }
+
+    // POST: Criar novo palestra
+    @PostMapping("/palestras")
+    public ResponseEntity<ApiResponse<PalestraDTO>> criarPalestra(@RequestBody @Valid PalestraDTO palestraDTO) {
+        PalestraDTO palestraCriado = servicePalestras.criarPalestra(palestraDTO);
+        ApiResponse<PalestraDTO> response = new ApiResponse<>(true, "Palestra criado com sucesso", palestraCriado);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    // PUT: Atualizar palestra por ID
+    @PutMapping("palestras/{id}")
+    public ResponseEntity<ApiResponse<PalestraDTO>> atualizarPalestra(
+            @PathVariable Long id,
+            @RequestBody @Valid PalestraDTO palestraDTO) {
+        PalestraDTO palestraAtualizado = servicePalestras.atualizarPalestra(id, palestraDTO);
+        ApiResponse<PalestraDTO> response = new ApiResponse<>(true, "Palestra atualizado com sucesso", palestraAtualizado);
+        return ResponseEntity.ok(response);
+    }
+
+    // DELETE: Excluir palestra por ID
+    @DeleteMapping("palestras/{id}")
+    public ResponseEntity<ApiResponse<Void>> excluirPalestra(@PathVariable Long id) {
+        servicePalestras.excluirPalestra(id);
+        ApiResponse<Void> response = new ApiResponse<>(true, "Palestra excluído com sucesso", null);
+        return ResponseEntity.ok(response);
+    }
+
+    // DELETE: Excluir múltiplos palestras por lista de IDs
+    @DeleteMapping("/palestras")
+    public ResponseEntity<ApiResponse<Void>> excluirPalestras(@RequestBody List<Long> ids) {
+        servicePalestras.excluirPalestras(ids);
+        ApiResponse<Void> response = new ApiResponse<>(true, "Palestras excluídos com sucesso", null);
+        return ResponseEntity.ok(response);
+    }
 }

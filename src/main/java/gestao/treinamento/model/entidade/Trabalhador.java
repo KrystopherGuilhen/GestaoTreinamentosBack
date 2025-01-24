@@ -46,6 +46,4 @@ public class Trabalhador {
     @ToString.Exclude
     private List<TrabalhadorEmpresa> empresasVinculadas = new ArrayList<>();
 
-//    @OneToMany(mappedBy = "trabalhador", cascade = CascadeType.ALL, orphanRemoval = true)
-//    private Set<TrabalhadorEmpresa> empresasVinculadas;
 }
