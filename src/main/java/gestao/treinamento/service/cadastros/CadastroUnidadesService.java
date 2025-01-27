@@ -1,8 +1,8 @@
-package gestao.treinamento.service;
+package gestao.treinamento.service.cadastros;
 
 import gestao.treinamento.exception.ResourceNotFoundException;
 import gestao.treinamento.model.entidade.Unidade;
-import gestao.treinamento.repository.CadastroUnidadesRepository;
+import gestao.treinamento.repository.cadastros.CadastroUnidadesRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

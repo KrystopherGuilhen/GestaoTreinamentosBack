@@ -1,12 +1,13 @@
 package gestao.treinamento.controller;
 
+import gestao.treinamento.exception.ResourceNotFoundException;
 import gestao.treinamento.model.dto.CursoDTO;
 import gestao.treinamento.model.dto.PalestraDTO;
 import gestao.treinamento.model.dto.TrabalhadorDTO;
 import gestao.treinamento.model.entidade.Empresa;
 import gestao.treinamento.model.entidade.Instrutor;
 import gestao.treinamento.model.entidade.Unidade;
-import gestao.treinamento.service.*;
+import gestao.treinamento.service.cadastros.*;
 import gestao.treinamento.util.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -135,22 +136,39 @@ public class CadastroController {
     // DELETE: Deletar uma empresa pelo ID
     @DeleteMapping("/empresas/{id}")
     public ResponseEntity<ApiResponse<Void>> deletarEmpresa(@PathVariable Long id) {
-        serviceEmpresas.deletarEmpresa(id);
-        return ResponseEntity.ok(new ApiResponse<>(true, "Empresa deletada com sucesso", null));
+        try {
+            serviceEmpresas.deletarEmpresa(id);
+            return ResponseEntity.ok(new ApiResponse<>(true, "Empresa deletada com sucesso", null));
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(404).body(new ApiResponse<>(false, e.getMessage(), null));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(400).body(new ApiResponse<>(false, e.getMessage(), null));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(new ApiResponse<>(false, "Erro interno ao deletar a empresa", null));
+        }
     }
 
     // DELETE múltiplo: Deletar várias empresas pelos IDs
     @DeleteMapping("/empresas")
     public ResponseEntity<ApiResponse<Void>> deletarEmpresas(@RequestBody List<Long> ids) {
-        serviceEmpresas.deletarEmpresas(ids);
-        return ResponseEntity.ok(new ApiResponse<>(true, "Empresas deletadas com sucesso", null));
+        try {
+            serviceEmpresas.deletarEmpresas(ids);
+            return ResponseEntity.ok(new ApiResponse<>(true, "Empresas deletadas com sucesso", null));
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(404).body(new ApiResponse<>(false, e.getMessage(), null));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(400).body(new ApiResponse<>(false, e.getMessage(), null));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(new ApiResponse<>(false, "Erro interno ao deletar as empresas", null));
+        }
     }
 
     // GET: Buscar todas as unidade
     @GetMapping("/unidades")
     public ResponseEntity<ApiResponse<List<Unidade>>> cadastrounidade() {
         List<Unidade> unidades = serviceUnidades.consultaCadastro();
-        return ResponseEntity.ok(new ApiResponse<>(true, "Unidades recuperadas com sucesso", unidades));
+        return ResponseEntity.ok(new ApiResponse<>(true, "Unidades" +
+                " recuperadas com sucesso", unidades));
     }
 
     // POST: Criar uma nova unidade

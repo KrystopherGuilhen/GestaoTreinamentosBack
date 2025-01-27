@@ -1,4 +1,4 @@
-package gestao.treinamento.repository;
+package gestao.treinamento.repository.cadastros;
 
 import gestao.treinamento.model.entidade.PalestraEmpresa;
 import org.springframework.data.jpa.repository.JpaRepository;

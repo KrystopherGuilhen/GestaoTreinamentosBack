@@ -1,13 +1,12 @@
-package gestao.treinamento.service;
+package gestao.treinamento.service.cadastros;
 
 import gestao.treinamento.model.dto.PalestraDTO;
 import gestao.treinamento.model.entidade.Palestra;
 import gestao.treinamento.model.entidade.PalestraEmpresa;
 import gestao.treinamento.model.entidade.Empresa;
-import gestao.treinamento.model.entidade.PalestraEmpresa;
-import gestao.treinamento.repository.CadastroPalestraEmpresaRepository;
-import gestao.treinamento.repository.CadastroPalestrasRepository;
-import gestao.treinamento.repository.CadastroEmpresasRepository;
+import gestao.treinamento.repository.cadastros.CadastroPalestraEmpresaRepository;
+import gestao.treinamento.repository.cadastros.CadastroPalestrasRepository;
+import gestao.treinamento.repository.cadastros.CadastroEmpresasRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -75,16 +75,44 @@ public class CadastroPalestrasService {
         palestraExistente.setNomeEvento(palestraDTO.getNomeEvento());
         palestraExistente.setCidadeEvento(palestraDTO.getCidadeEvento());
 
-        // Converter o formato ISO 8601 para LocalDate
         if (palestraDTO.getDataInicio() != null) {
-            LocalDate dataNascimento = LocalDate.parse(palestraDTO.getDataInicio().split("T")[0]);
-            palestraExistente.setDataInicio(dataNascimento);
+            String dataInicioStr = palestraDTO.getDataInicio();
+            LocalDate dataInicio = null;
+
+            try {
+                // Primeiro, tenta converter do formato ISO 8601
+                if (dataInicioStr.contains("T")) {
+                    dataInicio = LocalDate.parse(dataInicioStr.split("T")[0]);
+                } else {
+                    // Tenta converter do formato dd/MM/yyyy
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                    dataInicio = LocalDate.parse(dataInicioStr, formatter);
+                }
+            } catch (DateTimeParseException e) {
+                throw new IllegalArgumentException("Formato de data inválido: " + dataInicioStr);
+            }
+
+            palestraExistente.setDataInicio(dataInicio);
         }
 
-        // Converter o formato ISO 8601 para LocalDate
         if (palestraDTO.getDataFim() != null) {
-            LocalDate dataNascimento = LocalDate.parse(palestraDTO.getDataFim().split("T")[0]);
-            palestraExistente.setDataFim(dataNascimento);
+            String dataFimStr = palestraDTO.getDataFim();
+            LocalDate dataFim = null;
+
+            try {
+                // Primeiro, tenta converter do formato ISO 8601
+                if (dataFimStr.contains("T")) {
+                    dataFim = LocalDate.parse(dataFimStr.split("T")[0]);
+                } else {
+                    // Tenta converter do formato dd/MM/yyyy
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                    dataFim = LocalDate.parse(dataFimStr, formatter);
+                }
+            } catch (DateTimeParseException e) {
+                throw new IllegalArgumentException("Formato de data inválido: " + dataFimStr);
+            }
+
+            palestraExistente.setDataFim(dataFim);
         }
 
         palestraExistente.setValorContratoCrm(palestraDTO.getValorContratoCrm());

@@ -1,10 +1,11 @@
-package gestao.treinamento.service;
+package gestao.treinamento.service.cadastros;
 
 import gestao.treinamento.exception.ResourceNotFoundException;
 import gestao.treinamento.model.entidade.Empresa;
-import gestao.treinamento.repository.CadastroEmpresasRepository;
+import gestao.treinamento.repository.cadastros.CadastroEmpresasRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -43,7 +44,11 @@ public class CadastroEmpresasService {
         if (!repository.existsById(id)) {
             throw new ResourceNotFoundException("Instrutor não encontrado com ID: " + id);
         }
-        repository.deleteById(id);
+        try {
+            repository.deleteById(id);
+        } catch (DataIntegrityViolationException e) {
+            throw new IllegalStateException("A empresa não pode ser excluída pois está vinculada a outro cadastro.");
+        }
     }
 
     public void deletarEmpresas(List<Long> ids) {
@@ -51,6 +56,10 @@ public class CadastroEmpresasService {
         if (empresas.size() != ids.size()) {
             throw new ResourceNotFoundException("Um ou mais IDs não foram encontrados.");
         }
-        repository.deleteAll(empresas);
+        try {
+            repository.deleteAll(empresas);
+        } catch (DataIntegrityViolationException e) {
+            throw new IllegalStateException("Uma ou mais empresas não podem ser excluídas pois estão vinculadas a outros cadastros.");
+        }
     }
 }

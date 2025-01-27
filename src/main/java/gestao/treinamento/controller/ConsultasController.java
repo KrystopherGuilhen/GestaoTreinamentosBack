@@ -1,7 +1,7 @@
 package gestao.treinamento.controller;
 
 import gestao.treinamento.model.entidade.Empresa;
-import gestao.treinamento.service.ConsultaEmpresasService;
+import gestao.treinamento.service.consultas.ConsultaEmpresasService;
 import gestao.treinamento.util.ApiResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;

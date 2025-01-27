@@ -1,12 +1,12 @@
-package gestao.treinamento.service;
+package gestao.treinamento.service.cadastros;
 
 import gestao.treinamento.model.dto.CursoDTO;
 import gestao.treinamento.model.entidade.Curso;
 import gestao.treinamento.model.entidade.CursoEmpresa;
 import gestao.treinamento.model.entidade.Empresa;
-import gestao.treinamento.repository.CadastroCursoEmpresaRepository;
-import gestao.treinamento.repository.CadastroCursosRepository;
-import gestao.treinamento.repository.CadastroEmpresasRepository;
+import gestao.treinamento.repository.cadastros.CadastroCursoEmpresaRepository;
+import gestao.treinamento.repository.cadastros.CadastroCursosRepository;
+import gestao.treinamento.repository.cadastros.CadastroEmpresasRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;

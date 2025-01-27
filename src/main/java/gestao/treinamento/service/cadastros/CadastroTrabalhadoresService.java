@@ -1,12 +1,12 @@
-package gestao.treinamento.service;
+package gestao.treinamento.service.cadastros;
 
 import gestao.treinamento.model.dto.TrabalhadorDTO;
 import gestao.treinamento.model.entidade.Empresa;
 import gestao.treinamento.model.entidade.Trabalhador;
 import gestao.treinamento.model.entidade.TrabalhadorEmpresa;
-import gestao.treinamento.repository.CadastroEmpresasRepository;
-import gestao.treinamento.repository.CadastroTrabalhadorEmpresaRepository;
-import gestao.treinamento.repository.CadastroTrabalhadoresRepository;
+import gestao.treinamento.repository.cadastros.CadastroEmpresasRepository;
+import gestao.treinamento.repository.cadastros.CadastroTrabalhadorEmpresaRepository;
+import gestao.treinamento.repository.cadastros.CadastroTrabalhadoresRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -78,9 +79,23 @@ public class CadastroTrabalhadoresService {
         trabalhadorExistente.setCpf(trabalhadorDTO.getCpf());
         trabalhadorExistente.setRg(trabalhadorDTO.getRg());
 
-        // Converter o formato ISO 8601 para LocalDate
         if (trabalhadorDTO.getDataNascimento() != null) {
-            LocalDate dataNascimento = LocalDate.parse(trabalhadorDTO.getDataNascimento().split("T")[0]);
+            String dataNascimentoStr = trabalhadorDTO.getDataNascimento();
+            LocalDate dataNascimento = null;
+
+            try {
+                // Primeiro, tenta converter do formato ISO 8601
+                if (dataNascimentoStr.contains("T")) {
+                    dataNascimento = LocalDate.parse(dataNascimentoStr.split("T")[0]);
+                } else {
+                    // Tenta converter do formato dd/MM/yyyy
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                    dataNascimento = LocalDate.parse(dataNascimentoStr, formatter);
+                }
+            } catch (DateTimeParseException e) {
+                throw new IllegalArgumentException("Formato de data inválido: " + dataNascimentoStr);
+            }
+
             trabalhadorExistente.setDataNascimento(dataNascimento);
         }
 
