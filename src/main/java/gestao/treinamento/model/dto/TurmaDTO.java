@@ -16,15 +16,15 @@ public class TurmaDTO {
     private String dataInicio;
     private String dataFim;
 
-    private List<Long> idEventoVinculo;
+    private Long idEventoVinculo;
     private List<String> nomeEventoVinculo;
 
-    private List<Long> idModalidadeVinculo;
+    private Long idModalidadeVinculo;
     private List<String> nomeModalidadeVinculo;
 
     private List<Long> idTrabalhadorVinculo;
     private List<String> nomeTrabalhadorVinculo;
 
-    private List<Long> idInstrutorVinculo;
+    private Long idInstrutorVinculo;
     private List<String> nomeInstrutorVinculo;
 }

@@ -4,6 +4,7 @@ import gestao.treinamento.exception.ResourceNotFoundException;
 import gestao.treinamento.model.dto.CursoDTO;
 import gestao.treinamento.model.dto.PalestraDTO;
 import gestao.treinamento.model.dto.TrabalhadorDTO;
+import gestao.treinamento.model.dto.TurmaDTO;
 import gestao.treinamento.model.entidade.Empresa;
 import gestao.treinamento.model.entidade.Instrutor;
 import gestao.treinamento.model.entidade.Unidade;
@@ -31,6 +32,7 @@ public class CadastroController {
     private CadastroUnidadesService serviceUnidades;
     private CadastroCursosService serviceCursos;
     private CadastroPalestrasService servicePalestras;
+    private CadastroTurmasService serviceTurmas;
 
 
     // GET: Buscar todos os instrutores
@@ -281,6 +283,48 @@ public class CadastroController {
     public ResponseEntity<ApiResponse<Void>> excluirPalestras(@RequestBody List<Long> ids) {
         servicePalestras.excluirPalestras(ids);
         ApiResponse<Void> response = new ApiResponse<>(true, "Palestras excluídos com sucesso", null);
+        return ResponseEntity.ok(response);
+    }
+
+    // GET: Buscar todos os turma
+    @GetMapping("/turmas")
+    public ResponseEntity<ApiResponse<List<TurmaDTO>>> getTodosTurma() {
+        List<TurmaDTO> turma = serviceTurmas.consultaCadastro();
+        ApiResponse<List<TurmaDTO>> response = new ApiResponse<>(true, "Turma recuperados com sucesso", turma);
+        return ResponseEntity.ok(response);
+    }
+
+    // POST: Criar novo turma
+    @PostMapping("/turmas")
+    public ResponseEntity<ApiResponse<TurmaDTO>> criarTurma(@RequestBody @Valid TurmaDTO turmaDTO) {
+        TurmaDTO turmaCriado = serviceTurmas.criarTurma(turmaDTO);
+        ApiResponse<TurmaDTO> response = new ApiResponse<>(true, "Turma criado com sucesso", turmaCriado);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    // PUT: Atualizar turma por ID
+    @PutMapping("turmas/{id}")
+    public ResponseEntity<ApiResponse<TurmaDTO>> atualizarTurma(
+            @PathVariable Long id,
+            @RequestBody @Valid TurmaDTO turmaDTO) {
+        TurmaDTO turmaAtualizado = serviceTurmas.atualizarTurma(id, turmaDTO);
+        ApiResponse<TurmaDTO> response = new ApiResponse<>(true, "Turma atualizado com sucesso", turmaAtualizado);
+        return ResponseEntity.ok(response);
+    }
+
+    // DELETE: Excluir turma por ID
+    @DeleteMapping("turmas/{id}")
+    public ResponseEntity<ApiResponse<Void>> excluirTurma(@PathVariable Long id) {
+        serviceTurmas.excluirTurma(id);
+        ApiResponse<Void> response = new ApiResponse<>(true, "Turma excluído com sucesso", null);
+        return ResponseEntity.ok(response);
+    }
+
+    // DELETE: Excluir múltiplos turmas por lista de IDs
+    @DeleteMapping("/turmas")
+    public ResponseEntity<ApiResponse<Void>> excluirTurmas(@RequestBody List<Long> ids) {
+        serviceTurmas.excluirTurmas(ids);
+        ApiResponse<Void> response = new ApiResponse<>(true, "Turmas excluídos com sucesso", null);
         return ResponseEntity.ok(response);
     }
 }
