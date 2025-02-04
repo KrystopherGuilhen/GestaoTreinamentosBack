@@ -1,6 +1,7 @@
 package gestao.treinamento.service.consultas;
 
-import gestao.treinamento.model.entidade.Evento;
+import gestao.treinamento.model.dto.consultas.EventoConsultaDTO;
+import gestao.treinamento.model.entidades.Evento;
 import gestao.treinamento.repository.consultas.ConsultaEventosRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +16,7 @@ public class ConsultaEventosService {
     @Autowired
     private final ConsultaEventosRepository repository;
 
-    public List<Evento> consultaCadastro() {
-        return repository.findAll();
+    public List<EventoConsultaDTO> consultaCadastro() {
+        return repository.findAllEventosDTO();
     }
 }

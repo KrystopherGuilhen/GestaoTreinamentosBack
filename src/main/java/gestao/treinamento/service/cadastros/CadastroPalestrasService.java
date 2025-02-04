@@ -1,9 +1,9 @@
 package gestao.treinamento.service.cadastros;
 
-import gestao.treinamento.model.dto.PalestraDTO;
-import gestao.treinamento.model.entidade.Palestra;
-import gestao.treinamento.model.entidade.PalestraEmpresa;
-import gestao.treinamento.model.entidade.Empresa;
+import gestao.treinamento.model.dto.cadastros.PalestraDTO;
+import gestao.treinamento.model.entidades.Palestra;
+import gestao.treinamento.model.entidades.PalestraEmpresa;
+import gestao.treinamento.model.entidades.Empresa;
 import gestao.treinamento.repository.cadastros.CadastroPalestraEmpresaRepository;
 import gestao.treinamento.repository.cadastros.CadastroPalestrasRepository;
 import gestao.treinamento.repository.cadastros.CadastroEmpresasRepository;

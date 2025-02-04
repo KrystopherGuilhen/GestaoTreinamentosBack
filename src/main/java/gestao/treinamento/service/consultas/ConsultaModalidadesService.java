@@ -1,6 +1,7 @@
 package gestao.treinamento.service.consultas;
 
-import gestao.treinamento.model.entidade.Modalidade;
+import gestao.treinamento.model.dto.consultas.ModalidadeConsultaDTO;
+import gestao.treinamento.model.entidades.Modalidade;
 import gestao.treinamento.repository.consultas.ConsultaModalidadesRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +16,7 @@ public class ConsultaModalidadesService {
     @Autowired
     private final ConsultaModalidadesRepository repository;
 
-    public List<Modalidade> consultaCadastro() {
-        return repository.findAll();
+    public List<ModalidadeConsultaDTO> consultaCadastro() {
+        return repository.findAllModalidadesDTO();
     }
 }

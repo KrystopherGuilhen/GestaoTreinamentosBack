@@ -1,7 +1,7 @@
 package gestao.treinamento.service.cadastros;
 
 import gestao.treinamento.exception.ResourceNotFoundException;
-import gestao.treinamento.model.entidade.Empresa;
+import gestao.treinamento.model.entidades.Empresa;
 import gestao.treinamento.repository.cadastros.CadastroEmpresasRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +27,7 @@ public class CadastroEmpresasService {
 
     public Empresa atualizarEmpresa(Long id, Empresa instrutor) {
         Empresa existente = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Instrutor não encontrado com ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Empresa não encontrado com ID: " + id));
 
         existente.setNome(instrutor.getNome());
         existente.setCidade(instrutor.getCidade());
@@ -42,7 +42,7 @@ public class CadastroEmpresasService {
 
     public void deletarEmpresa(Long id) {
         if (!repository.existsById(id)) {
-            throw new ResourceNotFoundException("Instrutor não encontrado com ID: " + id);
+            throw new ResourceNotFoundException("Empresa não encontrada com ID: " + id);
         }
         try {
             repository.deleteById(id);

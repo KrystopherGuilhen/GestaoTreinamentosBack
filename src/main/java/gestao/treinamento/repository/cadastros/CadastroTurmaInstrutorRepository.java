@@ -1,6 +1,6 @@
 package gestao.treinamento.repository.cadastros;
 
-import gestao.treinamento.model.entidade.TurmaInstrutor;
+import gestao.treinamento.model.entidades.TurmaInstrutor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

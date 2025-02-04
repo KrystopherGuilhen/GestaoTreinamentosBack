@@ -1,9 +1,9 @@
 package gestao.treinamento.service.cadastros;
 
-import gestao.treinamento.model.dto.CursoDTO;
-import gestao.treinamento.model.entidade.Curso;
-import gestao.treinamento.model.entidade.CursoEmpresa;
-import gestao.treinamento.model.entidade.Empresa;
+import gestao.treinamento.model.dto.cadastros.CursoDTO;
+import gestao.treinamento.model.entidades.Curso;
+import gestao.treinamento.model.entidades.CursoEmpresa;
+import gestao.treinamento.model.entidades.Empresa;
 import gestao.treinamento.repository.cadastros.CadastroCursoEmpresaRepository;
 import gestao.treinamento.repository.cadastros.CadastroCursosRepository;
 import gestao.treinamento.repository.cadastros.CadastroEmpresasRepository;
@@ -43,21 +43,21 @@ public class CadastroCursosService {
         curso = repository.save(curso);
 
         // Verificar se há empresas vinculadas no DTO
-        if (dto.getIdEmpresaVinculo() != null && !dto.getIdEmpresaVinculo().isEmpty()) {
-            for (Long idEmpresa : dto.getIdEmpresaVinculo()) {
-                // Recuperar a empresa pelo ID (se necessário)
-                Empresa empresa = empresaRepository.findById(idEmpresa)
-                        .orElseThrow(() -> new RuntimeException("Empresa não encontrada: ID " + idEmpresa));
-
-                // Criar a associação Curso-empresa
-                CursoEmpresa cursoEmpresas = new CursoEmpresa();
-                cursoEmpresas.setCurso(curso);
-                cursoEmpresas.setEmpresa(empresa);
-
-                // Salvar a associação
-                cursoEmpresaRepository.save(cursoEmpresas);
-            }
-        }
+//        if (dto.getIdEmpresaVinculo() != null && !dto.getIdEmpresaVinculo().isEmpty()) {
+//            for (Long idEmpresa : dto.getIdEmpresaVinculo()) {
+//                // Recuperar a empresa pelo ID (se necessário)
+//                Empresa empresa = empresaRepository.findById(idEmpresa)
+//                        .orElseThrow(() -> new RuntimeException("Empresa não encontrada: ID " + idEmpresa));
+//
+//                // Criar a associação Curso-empresa
+//                CursoEmpresa cursoEmpresas = new CursoEmpresa();
+//                cursoEmpresas.setCurso(curso);
+//                cursoEmpresas.setEmpresa(empresa);
+//
+//                // Salvar a associação
+//                cursoEmpresaRepository.save(cursoEmpresas);
+//            }
+//        }
 
         // Retornar o DTO do Curso criado
         return convertToDTO(curso);
@@ -79,32 +79,32 @@ public class CadastroCursosService {
         cursoExistente.setValorContratoCrm(cursoDTO.getValorContratoCrm());
 
         // Atualizar associações com empresas
-        if (cursoDTO.getIdEmpresaVinculo() != null) {
-            // Recuperar as associações existentes (com a chave composta idCurso e idEmpresa)
-            List<Long> idsEmpresasVinculadas = cursoEmpresaRepository.findEmpresasByCursoId(id);
-
-            // Remover associações que não estão mais na lista
-            List<Long> idsParaRemover = idsEmpresasVinculadas.stream()
-                    .filter(idEmpresa -> !cursoDTO.getIdEmpresaVinculo().contains(idEmpresa))
-                    .toList();
-            cursoEmpresaRepository.deleteByCursoIdAndEmpresaIds(id, idsParaRemover);
-
-            // Adicionar novas associações (para cada empresa que não existe na tabela)
-            for (Long idEmpresa : cursoDTO.getIdEmpresaVinculo()) {
-                boolean existe = cursoEmpresaRepository.existsByCursoIdAndEmpresaId(id, idEmpresa);
-                if (!existe) {
-                    Empresa empresa = empresaRepository.findById(idEmpresa)
-                            .orElseThrow(() -> new EntityNotFoundException("Empresa com ID " + idEmpresa + " não encontrada"));
-
-                    CursoEmpresa novaAssociacao = new CursoEmpresa();
-                    novaAssociacao.setCurso(cursoExistente);
-                    novaAssociacao.setEmpresa(empresa);
-
-                    // Aqui, a chave primária (ID) será gerada automaticamente, já que a tabela tem uma chave composta
-                    cursoEmpresaRepository.save(novaAssociacao);
-                }
-            }
-        }
+//        if (cursoDTO.getIdEmpresaVinculo() != null) {
+//            // Recuperar as associações existentes (com a chave composta idCurso e idEmpresa)
+//            List<Long> idsEmpresasVinculadas = cursoEmpresaRepository.findEmpresasByCursoId(id);
+//
+//            // Remover associações que não estão mais na lista
+//            List<Long> idsParaRemover = idsEmpresasVinculadas.stream()
+//                    .filter(idEmpresa -> !cursoDTO.getIdEmpresaVinculo().contains(idEmpresa))
+//                    .toList();
+//            cursoEmpresaRepository.deleteByCursoIdAndEmpresaIds(id, idsParaRemover);
+//
+//            // Adicionar novas associações (para cada empresa que não existe na tabela)
+//            for (Long idEmpresa : cursoDTO.getIdEmpresaVinculo()) {
+//                boolean existe = cursoEmpresaRepository.existsByCursoIdAndEmpresaId(id, idEmpresa);
+//                if (!existe) {
+//                    Empresa empresa = empresaRepository.findById(idEmpresa)
+//                            .orElseThrow(() -> new EntityNotFoundException("Empresa com ID " + idEmpresa + " não encontrada"));
+//
+//                    CursoEmpresa novaAssociacao = new CursoEmpresa();
+//                    novaAssociacao.setCurso(cursoExistente);
+//                    novaAssociacao.setEmpresa(empresa);
+//
+//                    // Aqui, a chave primária (ID) será gerada automaticamente, já que a tabela tem uma chave composta
+//                    cursoEmpresaRepository.save(novaAssociacao);
+//                }
+//            }
+//        }
 
         Curso cursoAtualizado = repository.save(cursoExistente);
         return convertToDTO(cursoAtualizado);
@@ -144,19 +144,19 @@ public class CadastroCursosService {
         dto.setValorContratoCrm(curso.getValorContratoCrm());
 
         // Extrai os IDs e nomes das empresas vinculadas
-        List<Long> idEmpresas = curso.getEmpresasVinculadas() != null
-                ? curso.getEmpresasVinculadas().stream()
-                .map(te -> te.getEmpresa().getId())
-                .toList()
-                : new ArrayList<>();
-        dto.setIdEmpresaVinculo(idEmpresas);
-
-        List<String> nomesEmpresas = curso.getEmpresasVinculadas().stream()
-                .map(te -> te.getEmpresa().getNome())
-                .toList();
-
-        dto.setIdEmpresaVinculo(idEmpresas);
-        dto.setNomeEmpresaVinculo(nomesEmpresas);
+//        List<Long> idEmpresas = curso.getEmpresasVinculadas() != null
+//                ? curso.getEmpresasVinculadas().stream()
+//                .map(te -> te.getEmpresa().getId())
+//                .toList()
+//                : new ArrayList<>();
+//        dto.setIdEmpresaVinculo(idEmpresas);
+//
+//        List<String> nomesEmpresas = curso.getEmpresasVinculadas().stream()
+//                .map(te -> te.getEmpresa().getNome())
+//                .toList();
+//
+//        dto.setIdEmpresaVinculo(idEmpresas);
+//        dto.setNomeEmpresaVinculo(nomesEmpresas);
 
         return dto;
     }

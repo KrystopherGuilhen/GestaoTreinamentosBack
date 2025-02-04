@@ -1,7 +1,7 @@
 package gestao.treinamento.service.cadastros;
 
-import gestao.treinamento.model.dto.TurmaDTO;
-import gestao.treinamento.model.entidade.*;
+import gestao.treinamento.model.dto.cadastros.TurmaDTO;
+import gestao.treinamento.model.entidades.*;
 import gestao.treinamento.repository.cadastros.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
@@ -21,14 +21,25 @@ public class CadastroTurmasService {
 
     @Autowired
     private final CadastroTurmasRepository repository;
+
     private final CadastroEventosRepository eventosRepository;
     private final CadastroTurmaEventoRepository turmaEventoRepository;
+
     private final CadastroModalidadesRepository modalidadesRepository;
     private final CadastroTurmaModalidadeRepository turmaModalidadeRepository;
+
     private final CadastroTrabalhadoresRepository trabalhadoresRepository;
     private final CadastroTurmaTrabalhadorRepository turmaTrabalhadorRepository;
+
     private final CadastroInstrutoresRepository instrutoresRepository;
     private final CadastroTurmaInstrutorRepository turmaInstrutorRepository;
+
+    private final CadastroEmpresasRepository empresasRepository;
+    private final CadastroTurmaEmpresaRepository turmaEmpresaRepository;
+
+    private final CadastroCursosRepository cursosRepository;
+    private final CadastroTurmaCursoRepository turmaCursoRepository;
+
 
     // GET: Buscar todos os turmas
     public List<TurmaDTO> consultaCadastro() {
@@ -97,7 +108,7 @@ public class CadastroTurmasService {
         if (dto.getIdInstrutorVinculo() != null) {
             // Recuperar o evento pelo ID
             Instrutor instrutor = instrutoresRepository.findById(dto.getIdInstrutorVinculo())
-                    .orElseThrow(() -> new RuntimeException("Evento não encontrado: ID " + dto.getIdModalidadeVinculo()));
+                    .orElseThrow(() -> new RuntimeException("Evento não encontrado: ID " + dto.getIdInstrutorVinculo()));
 
             // Criar a associação turma-evento
             TurmaInstrutor turmaInstrutor = new TurmaInstrutor();
@@ -106,6 +117,38 @@ public class CadastroTurmasService {
 
             // Salvar a associação
             turmaInstrutorRepository.save(turmaInstrutor);
+        }
+
+        // Verificar se há empresas vinculadas no DTO
+        if (dto.getIdEmpresaVinculo() != null && !dto.getIdEmpresaVinculo().isEmpty()) {
+            for (Long idEmpresa : dto.getIdEmpresaVinculo()) {
+                // Recuperar o empresa pelo ID (se necessário)
+                Empresa empresa = empresasRepository.findById(idEmpresa)
+                        .orElseThrow(() -> new RuntimeException("Trabalhador não encontrada: ID " + idEmpresa));
+
+                // Criar a associação turma-empresa
+                TurmaEmpresa turmaEmpresas = new TurmaEmpresa();
+                turmaEmpresas.setTurma(turma);
+                turmaEmpresas.setEmpresa(empresa);
+
+                // Salvar a associação
+                turmaEmpresaRepository.save(turmaEmpresas);
+            }
+        }
+
+        // Verificar se há um curso vinculado no DTO
+        if (dto.getIdCursoVinculo() != null) {
+            // Recuperar o evento pelo ID
+            Curso curso = cursosRepository.findById(dto.getIdCursoVinculo())
+                    .orElseThrow(() -> new RuntimeException("Evento não encontrado: ID " + dto.getIdCursoVinculo()));
+
+            // Criar a associação turma-curso
+            TurmaCurso turmaCurso = new TurmaCurso();
+            turmaCurso.setTurma(turma);
+            turmaCurso.setCurso(curso);
+
+            // Salvar a associação
+            turmaCursoRepository.save(turmaCurso);
         }
 
         // Retornar o DTO do turma criado
@@ -288,6 +331,70 @@ public class CadastroTurmasService {
             }
         }
 
+        // Atualizar associações com empresas
+        if (turmaDTO.getIdEmpresaVinculo() != null) {
+            // Recuperar as associações existentes (com a chave composta idTurma e idEmpresa)
+            List<Long> idsEmpresasVinculadas = turmaEmpresaRepository.findEmpresaByTurmaId(id);
+
+            // Remover associações que não estão mais na lista
+            List<Long> idsParaRemover = idsEmpresasVinculadas.stream()
+                    .filter(idEmpresa -> !turmaDTO.getIdEmpresaVinculo().contains(idEmpresa))
+                    .toList();
+            turmaEmpresaRepository.deleteByTurmaIdAndEmpresaIds(id, idsParaRemover);
+
+            // Adicionar novas associações (para cada empresa que não existe na tabela)
+            for (Long idEmpresa : turmaDTO.getIdEmpresaVinculo()) {
+                boolean existe = turmaEmpresaRepository.existsByTurmaIdAndEmpresaId(id, idEmpresa);
+                if (!existe) {
+                    Empresa empresa = empresasRepository.findById(idEmpresa)
+                            .orElseThrow(() -> new EntityNotFoundException("Trabalhador com ID " + idEmpresa + " não encontrada"));
+
+                    TurmaEmpresa novaAssociacao = new TurmaEmpresa();
+                    novaAssociacao.setTurma(turmaExistente);
+                    novaAssociacao.setEmpresa(empresa);
+
+                    // Aqui, a chave primária (ID) será gerada automaticamente, já que a tabela tem uma chave composta
+                    turmaEmpresaRepository.save(novaAssociacao);
+                }
+            }
+        }
+
+        // Atualizar associações com curso
+        if (turmaDTO.getIdCursoVinculo() != null) {
+            // Recuperar as associações existentes (com a chave composta idTurma e idCurso)
+            List<Long> idsCursosVinculados = turmaCursoRepository.findCursoByTurmaId(id);
+
+            // Verificar se o curso atual está na lista de associações
+            Long idCursoVinculo = turmaDTO.getIdCursoVinculo();
+
+            // Remover associações que não correspondem ao novo curso vinculado
+            List<Long> idsParaRemover = idsCursosVinculados.stream()
+                    .filter(idCurso -> !idCurso.equals(idCursoVinculo))
+                    .toList();
+            if (!idsParaRemover.isEmpty()) {
+                turmaCursoRepository.deleteByTurmaIdAndCursoIds(id, idsParaRemover);
+            }
+
+            // Verificar se o curso já está associado
+            boolean existe = turmaCursoRepository.existsByTurmaIdAndCursoId(id, idCursoVinculo);
+            if (!existe) {
+                // Recuperar o curso pelo ID
+                Curso curso = cursosRepository.findById(idCursoVinculo)
+                        .orElseThrow(() -> new EntityNotFoundException("Curso com ID " + idCursoVinculo + " não encontrado"));
+
+                // Criar a nova associação
+                TurmaCurso novaAssociacao = new TurmaCurso();
+                novaAssociacao.setTurma(turmaExistente);
+                novaAssociacao.setCurso(curso);
+
+                // Salvar a nova associação
+                turmaCursoRepository.save(novaAssociacao);
+            }
+        }
+
+        turmaExistente.setObservacaoNr33(turmaDTO.getObservacaoNr33());
+
+
         Turma turmaAtualizado = repository.save(turmaExistente);
         return convertToDTO(turmaAtualizado);
     }
@@ -328,6 +435,7 @@ public class CadastroTurmasService {
                         ? turma.getDataFim().format(formatter)
                         : null
         );
+        dto.setValorContratoCrm(turma.getValorContratoCrm());
 
         // Extrai o ID e nome do evento vinculado (único)
         if (turma.getTurmaEventosVinculados() != null && !turma.getTurmaEventosVinculados().isEmpty()) {
@@ -368,8 +476,6 @@ public class CadastroTurmasService {
         List<String> nomesTrabalhadores = turma.getTurmaTrabalhadoresVinculados().stream()
                 .map(te -> te.getTrabalhador().getNome())
                 .toList();
-
-        dto.setIdTrabalhadorVinculo(idTrabalhadores);
         dto.setNomeTrabalhadorVinculo(nomesTrabalhadores);
 
         // Extrai o ID e nome do instrutor vinculado (único)
@@ -386,6 +492,34 @@ public class CadastroTurmasService {
             dto.setNomeInstrutorVinculo(null);
         }
 
+        // Extrai os IDs e nomes das empresas vinculados
+        List<Long> idEmpresas = turma.getTurmaEmpresasVinculadas() != null
+                ? turma.getTurmaEmpresasVinculadas().stream()
+                .map(te -> te.getEmpresa().getId())
+                .toList()
+                : new ArrayList<>();
+        dto.setIdEmpresaVinculo(idEmpresas);
+
+        List<String> nomesEmpresas = turma.getTurmaEmpresasVinculadas().stream()
+                .map(te -> te.getEmpresa().getNome())
+                .toList();
+        dto.setNomeEmpresaVinculo(nomesEmpresas);
+
+        // Extrai o ID e nome do curso vinculado (único)
+        if (turma.getTurmaCursosVinculados() != null && !turma.getTurmaCursosVinculados().isEmpty()) {
+            TurmaCurso turmaCurso = turma.getTurmaCursosVinculados().get(0);
+            dto.setIdCursoVinculo(turmaCurso.getCurso().getId());
+
+            List<String> nomeCurso = turma.getTurmaCursosVinculados().stream()
+                    .map(te -> te.getCurso().getNome())
+                    .toList();
+            dto.setNomeCursoVinculo(nomeCurso);
+        } else {
+            dto.setIdCursoVinculo(null);
+            dto.setNomeCursoVinculo(null);
+        }
+
+
         return dto;
     }
 
@@ -395,17 +529,28 @@ public class CadastroTurmasService {
         turma.setNome(dto.getNome());
 
         // Converter o formato ISO 8601 para LocalDate
-        if (dto.getDataInicio() != null) {
-            LocalDate dataNascimento = LocalDate.parse(dto.getDataInicio().split("T")[0]);
-            turma.setDataInicio(dataNascimento);
-        }
-
-        // Converter o formato ISO 8601 para LocalDate
-        if (dto.getDataFim() != null) {
-            LocalDate dataNascimento = LocalDate.parse(dto.getDataFim().split("T")[0]);
-            turma.setDataFim(dataNascimento);
-        }
+        turma.setDataInicio(parseDate(dto.getDataInicio()));
+        turma.setDataFim(parseDate(dto.getDataFim()));
+        turma.setValorContratoCrm(dto.getValorContratoCrm());
+        turma.setObservacaoNr33(dto.getObservacaoNr33());
 
         return turma;
+    }
+
+    private LocalDate parseDate(String dateStr) {
+        if (dateStr == null || dateStr.isEmpty()) {
+            return null;
+        }
+
+        String[] possibleFormats = {"yyyy-MM-dd", "dd-MM-yyyy", "dd/MM/yyyy"};
+
+        for (String format : possibleFormats) {
+            try {
+                return LocalDate.parse(dateStr.split("T")[0], DateTimeFormatter.ofPattern(format));
+            } catch (DateTimeParseException ignored) {
+            }
+        }
+
+        throw new IllegalArgumentException("Formato de data inválido: " + dateStr);
     }
 }

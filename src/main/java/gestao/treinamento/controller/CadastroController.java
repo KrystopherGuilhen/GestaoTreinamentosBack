@@ -1,13 +1,10 @@
 package gestao.treinamento.controller;
 
 import gestao.treinamento.exception.ResourceNotFoundException;
-import gestao.treinamento.model.dto.CursoDTO;
-import gestao.treinamento.model.dto.PalestraDTO;
-import gestao.treinamento.model.dto.TrabalhadorDTO;
-import gestao.treinamento.model.dto.TurmaDTO;
-import gestao.treinamento.model.entidade.Empresa;
-import gestao.treinamento.model.entidade.Instrutor;
-import gestao.treinamento.model.entidade.Unidade;
+import gestao.treinamento.model.dto.cadastros.*;
+import gestao.treinamento.model.entidades.Empresa;
+import gestao.treinamento.model.entidades.Instrutor;
+import gestao.treinamento.model.entidades.Unidade;
 import gestao.treinamento.service.cadastros.*;
 import gestao.treinamento.util.ApiResponse;
 import jakarta.validation.Valid;
@@ -33,6 +30,7 @@ public class CadastroController {
     private CadastroCursosService serviceCursos;
     private CadastroPalestrasService servicePalestras;
     private CadastroTurmasService serviceTurmas;
+    private CadastroMatriculasTrabalhadoresService serviceMatriculasTrabalhadores;
 
 
     // GET: Buscar todos os instrutores
@@ -325,6 +323,48 @@ public class CadastroController {
     public ResponseEntity<ApiResponse<Void>> excluirTurmas(@RequestBody List<Long> ids) {
         serviceTurmas.excluirTurmas(ids);
         ApiResponse<Void> response = new ApiResponse<>(true, "Turmas excluídos com sucesso", null);
+        return ResponseEntity.ok(response);
+    }
+
+    // GET: Buscar todos os matriculaTrabalhador
+    @GetMapping("/matriculasTrabalhadores")
+    public ResponseEntity<ApiResponse<List<MatriculaTrabalhadorDTO>>> getMatriculaTrabalhador() {
+        List<MatriculaTrabalhadorDTO> matriculaTrabalhador = serviceMatriculasTrabalhadores.consultaCadastro();
+        ApiResponse<List<MatriculaTrabalhadorDTO>> response = new ApiResponse<>(true, "Matriculas dos trabalhadores recuperadas com sucesso", matriculaTrabalhador);
+        return ResponseEntity.ok(response);
+    }
+
+    // POST: Criar novo turma
+    @PostMapping("/matriculasTrabalhadores")
+    public ResponseEntity<ApiResponse<MatriculaTrabalhadorDTO>> criarMatriculaTrabalhador(@RequestBody @Valid MatriculaTrabalhadorDTO matriculaTrabalhadorDTO) {
+        MatriculaTrabalhadorDTO matriculaTrabalhadorCriada = serviceMatriculasTrabalhadores.criarMatriculaTrabalhador(matriculaTrabalhadorDTO);
+        ApiResponse<MatriculaTrabalhadorDTO> response = new ApiResponse<>(true, "Matricula do trabalhador criada com sucesso", matriculaTrabalhadorCriada);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    // PUT: Atualizar turma por ID
+    @PutMapping("matriculasTrabalhadores/{id}")
+    public ResponseEntity<ApiResponse<MatriculaTrabalhadorDTO>> atualizarMatriculaTrabalhador(
+            @PathVariable Long id,
+            @RequestBody @Valid MatriculaTrabalhadorDTO matriculaTrabalhadorDTO) {
+        MatriculaTrabalhadorDTO matriculatrabalhadorAtualizado = serviceMatriculasTrabalhadores.atualizarMatriculaTrabalhador(id, matriculaTrabalhadorDTO);
+        ApiResponse<MatriculaTrabalhadorDTO> response = new ApiResponse<>(true, "Matrícula do trabalhador atualizado com sucesso", matriculatrabalhadorAtualizado);
+        return ResponseEntity.ok(response);
+    }
+
+    // DELETE: Excluir turma por ID
+    @DeleteMapping("matriculasTrabalhadores/{id}")
+    public ResponseEntity<ApiResponse<Void>> excluirMatriculaTrabalhador(@PathVariable Long id) {
+        serviceMatriculasTrabalhadores.excluirMatriculaTrabalhador(id);
+        ApiResponse<Void> response = new ApiResponse<>(true, "Matrícula de trabalhador excluído com sucesso", null);
+        return ResponseEntity.ok(response);
+    }
+
+    // DELETE: Excluir múltiplos turmas por lista de IDs
+    @DeleteMapping("/matriculasTrabalhadores")
+    public ResponseEntity<ApiResponse<Void>> excluirMatriculasTrabalhadores(@RequestBody List<Long> ids) {
+        serviceMatriculasTrabalhadores.excluirMatriculasTrabalhadores(ids);
+        ApiResponse<Void> response = new ApiResponse<>(true, "Matrículas de trabalhadores excluídos com sucesso", null);
         return ResponseEntity.ok(response);
     }
 }

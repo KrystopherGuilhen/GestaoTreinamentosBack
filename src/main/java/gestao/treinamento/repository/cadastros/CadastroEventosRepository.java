@@ -1,6 +1,6 @@
 package gestao.treinamento.repository.cadastros;
 
-import gestao.treinamento.model.entidade.Evento;
+import gestao.treinamento.model.entidades.Evento;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
