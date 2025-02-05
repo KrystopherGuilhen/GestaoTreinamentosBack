@@ -18,7 +18,10 @@ public class CursoDTO {
     private Integer cargaHorariaEad;
     private Integer cargaHorariaPresencial;
     private Integer periodoValidade;
-    private Double valorContratoCrm;
+//    private Double valorContratoCrm;
+
+    private Long idModalidadeVinculo;
+    private List<String> nomeModalidadeVinculo;
 
 //    private List<Long> idEmpresaVinculo;
 //    private List<String> nomeEmpresaVinculo;

@@ -30,7 +30,7 @@ public class CadastroController {
     private CadastroCursosService serviceCursos;
     private CadastroPalestrasService servicePalestras;
     private CadastroTurmasService serviceTurmas;
-    private CadastroMatriculasTrabalhadoresService serviceMatriculasTrabalhadores;
+    //private CadastroMatriculasTrabalhadoresService serviceMatriculasTrabalhadores;
 
 
     // GET: Buscar todos os instrutores
@@ -113,23 +113,23 @@ public class CadastroController {
 
     // GET: Buscar todas as empresa
     @GetMapping("/empresas")
-    public ResponseEntity<ApiResponse<List<Empresa>>> cadastroEmpresa() {
-        List<Empresa> empresas = serviceEmpresas.consultaCadastro();
+    public ResponseEntity<ApiResponse<List<EmpresaDTO>>> cadastroEmpresa() {
+        List<EmpresaDTO> empresas = serviceEmpresas.consultaCadastro();
         return ResponseEntity.ok(new ApiResponse<>(true, "Empresas recuperadas com sucesso", empresas));
     }
 
     // POST: Criar um nova empresa
     @PostMapping("/empresas")
-    public ResponseEntity<ApiResponse<Empresa>> criarEmpresas(@RequestBody Empresa empresa) {
-        Empresa novaEmpresa = serviceEmpresas.salvarEmpresa(empresa);
+    public ResponseEntity<ApiResponse<EmpresaDTO>> criarEmpresas(@RequestBody EmpresaDTO empresa) {
+        EmpresaDTO novaEmpresa = serviceEmpresas.criarEmpresa(empresa);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new ApiResponse<>(true, "Empresa criada com sucesso", novaEmpresa));
     }
 
     // PUT: Atualizar uma empresa existente
     @PutMapping("/empresas/{id}")
-    public ResponseEntity<ApiResponse<Empresa>> atualizarEmpresa(@PathVariable Long id, @RequestBody Empresa empresa) {
-        Empresa empresaAtualizada = serviceEmpresas.atualizarEmpresa(id, empresa);
+    public ResponseEntity<ApiResponse<EmpresaDTO>> atualizarEmpresa(@PathVariable Long id, @RequestBody EmpresaDTO empresa) {
+        EmpresaDTO empresaAtualizada = serviceEmpresas.atualizarEmpresa(id, empresa);
         return ResponseEntity.ok(new ApiResponse<>(true, "Empresa atualizada com sucesso", empresaAtualizada));
     }
 
@@ -326,45 +326,45 @@ public class CadastroController {
         return ResponseEntity.ok(response);
     }
 
-    // GET: Buscar todos os matriculaTrabalhador
-    @GetMapping("/matriculasTrabalhadores")
-    public ResponseEntity<ApiResponse<List<MatriculaTrabalhadorDTO>>> getMatriculaTrabalhador() {
-        List<MatriculaTrabalhadorDTO> matriculaTrabalhador = serviceMatriculasTrabalhadores.consultaCadastro();
-        ApiResponse<List<MatriculaTrabalhadorDTO>> response = new ApiResponse<>(true, "Matriculas dos trabalhadores recuperadas com sucesso", matriculaTrabalhador);
-        return ResponseEntity.ok(response);
-    }
-
-    // POST: Criar novo turma
-    @PostMapping("/matriculasTrabalhadores")
-    public ResponseEntity<ApiResponse<MatriculaTrabalhadorDTO>> criarMatriculaTrabalhador(@RequestBody @Valid MatriculaTrabalhadorDTO matriculaTrabalhadorDTO) {
-        MatriculaTrabalhadorDTO matriculaTrabalhadorCriada = serviceMatriculasTrabalhadores.criarMatriculaTrabalhador(matriculaTrabalhadorDTO);
-        ApiResponse<MatriculaTrabalhadorDTO> response = new ApiResponse<>(true, "Matricula do trabalhador criada com sucesso", matriculaTrabalhadorCriada);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-
-    // PUT: Atualizar turma por ID
-    @PutMapping("matriculasTrabalhadores/{id}")
-    public ResponseEntity<ApiResponse<MatriculaTrabalhadorDTO>> atualizarMatriculaTrabalhador(
-            @PathVariable Long id,
-            @RequestBody @Valid MatriculaTrabalhadorDTO matriculaTrabalhadorDTO) {
-        MatriculaTrabalhadorDTO matriculatrabalhadorAtualizado = serviceMatriculasTrabalhadores.atualizarMatriculaTrabalhador(id, matriculaTrabalhadorDTO);
-        ApiResponse<MatriculaTrabalhadorDTO> response = new ApiResponse<>(true, "Matrícula do trabalhador atualizado com sucesso", matriculatrabalhadorAtualizado);
-        return ResponseEntity.ok(response);
-    }
-
-    // DELETE: Excluir turma por ID
-    @DeleteMapping("matriculasTrabalhadores/{id}")
-    public ResponseEntity<ApiResponse<Void>> excluirMatriculaTrabalhador(@PathVariable Long id) {
-        serviceMatriculasTrabalhadores.excluirMatriculaTrabalhador(id);
-        ApiResponse<Void> response = new ApiResponse<>(true, "Matrícula de trabalhador excluído com sucesso", null);
-        return ResponseEntity.ok(response);
-    }
-
-    // DELETE: Excluir múltiplos turmas por lista de IDs
-    @DeleteMapping("/matriculasTrabalhadores")
-    public ResponseEntity<ApiResponse<Void>> excluirMatriculasTrabalhadores(@RequestBody List<Long> ids) {
-        serviceMatriculasTrabalhadores.excluirMatriculasTrabalhadores(ids);
-        ApiResponse<Void> response = new ApiResponse<>(true, "Matrículas de trabalhadores excluídos com sucesso", null);
-        return ResponseEntity.ok(response);
-    }
+//    // GET: Buscar todos os matriculaTrabalhador
+//    @GetMapping("/matriculasTrabalhadores")
+//    public ResponseEntity<ApiResponse<List<MatriculaTrabalhadorDTO>>> getMatriculaTrabalhador() {
+//        List<MatriculaTrabalhadorDTO> matriculaTrabalhador = serviceMatriculasTrabalhadores.consultaCadastro();
+//        ApiResponse<List<MatriculaTrabalhadorDTO>> response = new ApiResponse<>(true, "Matriculas dos trabalhadores recuperadas com sucesso", matriculaTrabalhador);
+//        return ResponseEntity.ok(response);
+//    }
+//
+//    // POST: Criar novo turma
+//    @PostMapping("/matriculasTrabalhadores")
+//    public ResponseEntity<ApiResponse<MatriculaTrabalhadorDTO>> criarMatriculaTrabalhador(@RequestBody @Valid MatriculaTrabalhadorDTO matriculaTrabalhadorDTO) {
+//        MatriculaTrabalhadorDTO matriculaTrabalhadorCriada = serviceMatriculasTrabalhadores.criarMatriculaTrabalhador(matriculaTrabalhadorDTO);
+//        ApiResponse<MatriculaTrabalhadorDTO> response = new ApiResponse<>(true, "Matricula do trabalhador criada com sucesso", matriculaTrabalhadorCriada);
+//        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+//    }
+//
+//    // PUT: Atualizar turma por ID
+//    @PutMapping("matriculasTrabalhadores/{id}")
+//    public ResponseEntity<ApiResponse<MatriculaTrabalhadorDTO>> atualizarMatriculaTrabalhador(
+//            @PathVariable Long id,
+//            @RequestBody @Valid MatriculaTrabalhadorDTO matriculaTrabalhadorDTO) {
+//        MatriculaTrabalhadorDTO matriculatrabalhadorAtualizado = serviceMatriculasTrabalhadores.atualizarMatriculaTrabalhador(id, matriculaTrabalhadorDTO);
+//        ApiResponse<MatriculaTrabalhadorDTO> response = new ApiResponse<>(true, "Matrícula do trabalhador atualizado com sucesso", matriculatrabalhadorAtualizado);
+//        return ResponseEntity.ok(response);
+//    }
+//
+//    // DELETE: Excluir turma por ID
+//    @DeleteMapping("matriculasTrabalhadores/{id}")
+//    public ResponseEntity<ApiResponse<Void>> excluirMatriculaTrabalhador(@PathVariable Long id) {
+//        serviceMatriculasTrabalhadores.excluirMatriculaTrabalhador(id);
+//        ApiResponse<Void> response = new ApiResponse<>(true, "Matrícula de trabalhador excluído com sucesso", null);
+//        return ResponseEntity.ok(response);
+//    }
+//
+//    // DELETE: Excluir múltiplos turmas por lista de IDs
+//    @DeleteMapping("/matriculasTrabalhadores")
+//    public ResponseEntity<ApiResponse<Void>> excluirMatriculasTrabalhadores(@RequestBody List<Long> ids) {
+//        serviceMatriculasTrabalhadores.excluirMatriculasTrabalhadores(ids);
+//        ApiResponse<Void> response = new ApiResponse<>(true, "Matrículas de trabalhadores excluídos com sucesso", null);
+//        return ResponseEntity.ok(response);
+//    }
 }

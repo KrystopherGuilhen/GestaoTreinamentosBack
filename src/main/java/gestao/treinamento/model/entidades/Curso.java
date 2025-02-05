@@ -34,8 +34,12 @@ public class Curso {
     @Column(name = "periodo_validade_curso")
     private Integer periodoValidade;
 
-    @Column(name = "valor_contrato_crm", nullable = false)
-    private Double valorContratoCrm;
+//    @Column(name = "valor_contrato_crm", nullable = false)
+//    private Double valorContratoCrm;
+
+    @OneToMany(mappedBy = "curso", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    private List<CursoModalidade> modalidadesVinculadas = new ArrayList<>();
 
 //    @OneToMany(mappedBy = "curso", cascade = CascadeType.ALL, orphanRemoval = true)
 //    @ToString.Exclude

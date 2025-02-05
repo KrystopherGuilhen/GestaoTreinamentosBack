@@ -28,6 +28,7 @@ public class ConsultasController {
     private ConsultaInstrutoresService serviceInstrutores;
     private ConsultaCursosService serviceCursos;
     private ConsultaTurmasService serviceTurmas;
+    private ConsultaIndustriasService serviceIndustrias;
 
     // GET: Buscar todas as empresas
     @GetMapping("/empresas")
@@ -71,10 +72,17 @@ public class ConsultasController {
         return ResponseEntity.ok(new ApiResponse<>(true, "Cursos consultados com sucesso", cursos));
     }
 
-    // GET: Buscar todos os turmas
+    // GET: Buscar todos as turmas
     @GetMapping("/turmas")
     public ResponseEntity<ApiResponse<List<TurmaConsultaDTO>>> consultaTurma() {
         List<TurmaConsultaDTO> turmas = serviceTurmas.consultaCadastro();
         return ResponseEntity.ok(new ApiResponse<>(true, "Turmas consultadas com sucesso", turmas));
+    }
+
+    // GET: Buscar todos as industrias
+    @GetMapping("/industrias")
+    public ResponseEntity<ApiResponse<List<IndustriaConsultaDTO>>> consultaIndustria() {
+        List<IndustriaConsultaDTO> industria = serviceIndustrias.consultaCadastro();
+        return ResponseEntity.ok(new ApiResponse<>(true, "Industrias consultadas com sucesso", industria));
     }
 }

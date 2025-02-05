@@ -35,5 +35,5 @@ public class TurmaDTO {
     private Long idCursoVinculo;
     private List<String> nomeCursoVinculo;
 
-    private String observacaoNr33;
+    private String observacaoNr;
 }

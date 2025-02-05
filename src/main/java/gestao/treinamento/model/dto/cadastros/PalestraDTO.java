@@ -14,11 +14,13 @@ public class PalestraDTO {
     private Long id;
     private String nomeEvento;
     private String cidadeEvento;
-    private String dataInicio;
-    private String dataFim;
-    private Double valorContratoCrm;
-    private Integer numeroContratoCrm;
+    //private String dataInicio;
+    //private String dataFim;
+    //private Double valorContratoCrm;
+    //private Integer numeroContratoCrm;
+    private String conteudoProgramatico;
+    private String observacao;
 
-    private List<Long> idEmpresaVinculo;
-    private List<String> nomeEmpresaVinculo;
+//    private List<Long> idEmpresaVinculo;
+//    private List<String> nomeEmpresaVinculo;
 }

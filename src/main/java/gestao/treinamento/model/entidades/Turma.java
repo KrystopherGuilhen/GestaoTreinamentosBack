@@ -54,7 +54,7 @@ public class Turma {
     @ToString.Exclude
     private List<TurmaCurso> turmaCursosVinculados = new ArrayList<>();
 
-    @Column(name = "observacao_nr33", length = 450)
-    private String observacaoNr33;
+    @Column(name = "observacao_nr", length = 450)
+    private String observacaoNr;
 
 }

@@ -2,11 +2,9 @@ package gestao.treinamento.service.cadastros;
 
 import gestao.treinamento.model.dto.cadastros.CursoDTO;
 import gestao.treinamento.model.entidades.Curso;
-import gestao.treinamento.model.entidades.CursoEmpresa;
-import gestao.treinamento.model.entidades.Empresa;
-import gestao.treinamento.repository.cadastros.CadastroCursoEmpresaRepository;
-import gestao.treinamento.repository.cadastros.CadastroCursosRepository;
-import gestao.treinamento.repository.cadastros.CadastroEmpresasRepository;
+import gestao.treinamento.model.entidades.CursoModalidade;
+import gestao.treinamento.model.entidades.Modalidade;
+import gestao.treinamento.repository.cadastros.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -23,8 +20,12 @@ public class CadastroCursosService {
 
     @Autowired
     private final CadastroCursosRepository repository;
-    private final CadastroEmpresasRepository empresaRepository;
-    private final CadastroCursoEmpresaRepository cursoEmpresaRepository;
+
+//    private final CadastroEmpresasRepository empresaRepository;
+//    private final CadastroCursoEmpresaRepository cursoEmpresaRepository;
+
+    private final CadastroModalidadesRepository modalidadesRepository;
+    private final CadastroCursoModalidadeRepository cursoModalidadeRepository;
 
     // GET: Buscar todos os Cursos
     public List<CursoDTO> consultaCadastro() {
@@ -59,6 +60,21 @@ public class CadastroCursosService {
 //            }
 //        }
 
+        // Verificar se há um modalidade vinculado no DTO
+        if (dto.getIdModalidadeVinculo() != null) {
+            // Recuperar o evento pelo ID
+            Modalidade modalidade = modalidadesRepository.findById(dto.getIdModalidadeVinculo())
+                    .orElseThrow(() -> new RuntimeException("Evento não encontrado: ID " + dto.getIdModalidadeVinculo()));
+
+            // Criar a associação curso-evento
+            CursoModalidade cursoModalidade = new CursoModalidade();
+            cursoModalidade.setCurso(curso);
+            cursoModalidade.setModalidade(modalidade);
+
+            // Salvar a associação
+            cursoModalidadeRepository.save(cursoModalidade);
+        }
+
         // Retornar o DTO do Curso criado
         return convertToDTO(curso);
     }
@@ -76,7 +92,7 @@ public class CadastroCursosService {
         cursoExistente.setCargaHorariaEad(cursoDTO.getCargaHorariaEad());
         cursoExistente.setCargaHorariaPresencial(cursoDTO.getCargaHorariaPresencial());
         cursoExistente.setPeriodoValidade(cursoDTO.getPeriodoValidade());
-        cursoExistente.setValorContratoCrm(cursoDTO.getValorContratoCrm());
+        //cursoExistente.setValorContratoCrm(cursoDTO.getValorContratoCrm());
 
         // Atualizar associações com empresas
 //        if (cursoDTO.getIdEmpresaVinculo() != null) {
@@ -105,6 +121,39 @@ public class CadastroCursosService {
 //                }
 //            }
 //        }
+
+        // Atualizar associações com modalidade
+        if (cursoDTO.getIdModalidadeVinculo() != null) {
+            // Recuperar as associações existentes (com a chave composta idCurso e idModalidade)
+            List<Long> idsModalidadesVinculadas = cursoModalidadeRepository.findModalidadeByCursoId(id);
+
+            // Verificar se o modalidade atual está na lista de associações
+            Long idModalidadeVinculo = cursoDTO.getIdModalidadeVinculo();
+
+            // Remover associações que não correspondem ao novo modalidade vinculado
+            List<Long> idsParaRemover = idsModalidadesVinculadas.stream()
+                    .filter(idModalidade -> !idModalidade.equals(idModalidadeVinculo))
+                    .toList();
+            if (!idsParaRemover.isEmpty()) {
+                cursoModalidadeRepository.deleteByCursoIdAndModalidadeIds(id, idsParaRemover);
+            }
+
+            // Verificar se o modalidade já está associado
+            boolean existe = cursoModalidadeRepository.existsByCursoIdAndModalidadeId(id, idModalidadeVinculo);
+            if (!existe) {
+                // Recuperar o modalidade pelo ID
+                Modalidade modalidade = modalidadesRepository.findById(idModalidadeVinculo)
+                        .orElseThrow(() -> new EntityNotFoundException("Modalidade com ID " + idModalidadeVinculo + " não encontrado"));
+
+                // Criar a nova associação
+                CursoModalidade novaAssociacao = new CursoModalidade();
+                novaAssociacao.setCurso(cursoExistente);
+                novaAssociacao.setModalidade(modalidade);
+
+                // Salvar a nova associação
+                cursoModalidadeRepository.save(novaAssociacao);
+            }
+        }
 
         Curso cursoAtualizado = repository.save(cursoExistente);
         return convertToDTO(cursoAtualizado);
@@ -141,7 +190,7 @@ public class CadastroCursosService {
         dto.setCargaHorariaEad(curso.getCargaHorariaEad());
         dto.setCargaHorariaPresencial(curso.getCargaHorariaPresencial());
         dto.setPeriodoValidade(curso.getPeriodoValidade());
-        dto.setValorContratoCrm(curso.getValorContratoCrm());
+        //dto.setValorContratoCrm(curso.getValorContratoCrm());
 
         // Extrai os IDs e nomes das empresas vinculadas
 //        List<Long> idEmpresas = curso.getEmpresasVinculadas() != null
@@ -158,6 +207,20 @@ public class CadastroCursosService {
 //        dto.setIdEmpresaVinculo(idEmpresas);
 //        dto.setNomeEmpresaVinculo(nomesEmpresas);
 
+        // Extrai o ID e nome da modalidade vinculada (única)
+        if (curso.getModalidadesVinculadas() != null && !curso.getModalidadesVinculadas().isEmpty()) {
+            CursoModalidade cursoModalidade = curso.getModalidadesVinculadas().get(0);
+            dto.setIdModalidadeVinculo(cursoModalidade.getModalidade().getId());
+
+            List<String> nomeModalidades = curso.getModalidadesVinculadas().stream()
+                    .map(te -> te.getModalidade().getNome())
+                    .toList();
+            dto.setNomeModalidadeVinculo(nomeModalidades);
+        } else {
+            dto.setIdModalidadeVinculo(null);
+            dto.setNomeModalidadeVinculo(null);
+        }
+
         return dto;
     }
 
@@ -170,7 +233,7 @@ public class CadastroCursosService {
         curso.setCargaHorariaEad(dto.getCargaHorariaEad());
         curso.setCargaHorariaPresencial(dto.getCargaHorariaPresencial());
         curso.setPeriodoValidade(dto.getPeriodoValidade());
-        curso.setValorContratoCrm(dto.getValorContratoCrm());
+        //curso.setValorContratoCrm(dto.getValorContratoCrm());
 
         return curso;
     }

@@ -392,8 +392,7 @@ public class CadastroTurmasService {
             }
         }
 
-        turmaExistente.setObservacaoNr33(turmaDTO.getObservacaoNr33());
-
+        turmaExistente.setObservacaoNr(turmaDTO.getObservacaoNr());
 
         Turma turmaAtualizado = repository.save(turmaExistente);
         return convertToDTO(turmaAtualizado);
@@ -532,7 +531,7 @@ public class CadastroTurmasService {
         turma.setDataInicio(parseDate(dto.getDataInicio()));
         turma.setDataFim(parseDate(dto.getDataFim()));
         turma.setValorContratoCrm(dto.getValorContratoCrm());
-        turma.setObservacaoNr33(dto.getObservacaoNr33());
+        turma.setObservacaoNr(dto.getObservacaoNr());
 
         return turma;
     }

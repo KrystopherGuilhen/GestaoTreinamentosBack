@@ -23,19 +23,25 @@ public class Palestra {
     @Column(name = "cidade_evento", nullable = false, length = 100)
     private String cidadeEvento;
 
-    @Column(name = "data_inicio", nullable = false)
-    private LocalDate dataInicio;
+//    @Column(name = "data_inicio", nullable = false)
+//    private LocalDate dataInicio;
+//
+//    @Column(name = "data_fim", nullable = false)
+//    private LocalDate dataFim;
 
-    @Column(name = "data_fim", nullable = false)
-    private LocalDate dataFim;
+//    @Column(name = "valor_contrato_crm", nullable = false)
+//    private Double valorContratoCrm;
 
-    @Column(name = "valor_contrato_crm", nullable = false)
-    private Double valorContratoCrm;
+//    @Column(name = "numero_contrato_crm", nullable = false)
+//    private Integer numeroContratoCrm;
 
-    @Column(name = "numero_contrato_crm", nullable = false)
-    private Integer numeroContratoCrm;
+    @Column(name = "conteudo_programatico", nullable = false, columnDefinition = "TEXT")
+    private String conteudoProgramatico;
 
-    @OneToMany(mappedBy = "palestra", cascade = CascadeType.ALL, orphanRemoval = true)
-    @ToString.Exclude
-    private List<PalestraEmpresa> empresasVinculadas = new ArrayList<>();
+    @Column(name = "observacao", columnDefinition = "TEXT")
+    private String observacao;
+
+//    @OneToMany(mappedBy = "palestra", cascade = CascadeType.ALL, orphanRemoval = true)
+//    @ToString.Exclude
+//    private List<PalestraEmpresa> empresasVinculadas = new ArrayList<>();
 }
