@@ -18,4 +18,8 @@ public class ConsultaTrabalhadoresService {
     public List<TrabalhadorConsultaDTO> consultaCadastro() {
         return repository.findAllTrabalhadoresDTO();
     }
+
+    public List<TrabalhadorConsultaDTO> consultaPorEmpresas(List<Long> empresaIds) {
+        return repository.findAllTrabalhadoresByEmpresaIds(empresaIds);
+    }
 }

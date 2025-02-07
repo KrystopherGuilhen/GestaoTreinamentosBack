@@ -16,6 +16,7 @@ public class TurmaDTO {
     private String dataInicio;
     private String dataFim;
     private Double valorContratoCrm;
+    private Integer numeroContratoCrm;
 
     private Long idEventoVinculo;
     private List<String> nomeEventoVinculo;

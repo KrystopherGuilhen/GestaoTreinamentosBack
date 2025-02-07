@@ -204,6 +204,9 @@ public class CadastroTurmasService {
             turmaExistente.setDataFim(dataFim);
         }
 
+        turmaExistente.setValorContratoCrm(turmaDTO.getValorContratoCrm());
+        turmaExistente.setNumeroContratoCrm(turmaDTO.getNumeroContratoCrm());
+
         // Atualizar associações com evento
         if (turmaDTO.getIdEventoVinculo() != null) {
             // Recuperar as associações existentes (com a chave composta idTurma e idEvento)
@@ -435,6 +438,7 @@ public class CadastroTurmasService {
                         : null
         );
         dto.setValorContratoCrm(turma.getValorContratoCrm());
+        dto.setNumeroContratoCrm(turma.getNumeroContratoCrm());
 
         // Extrai o ID e nome do evento vinculado (único)
         if (turma.getTurmaEventosVinculados() != null && !turma.getTurmaEventosVinculados().isEmpty()) {
@@ -531,6 +535,7 @@ public class CadastroTurmasService {
         turma.setDataInicio(parseDate(dto.getDataInicio()));
         turma.setDataFim(parseDate(dto.getDataFim()));
         turma.setValorContratoCrm(dto.getValorContratoCrm());
+        turma.setNumeroContratoCrm(dto.getNumeroContratoCrm());
         turma.setObservacaoNr(dto.getObservacaoNr());
 
         return turma;

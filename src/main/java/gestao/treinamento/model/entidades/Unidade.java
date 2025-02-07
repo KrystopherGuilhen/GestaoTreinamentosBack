@@ -2,6 +2,10 @@ package gestao.treinamento.model.entidades;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.ToString;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @Entity
@@ -12,12 +16,20 @@ public class Unidade {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "nome_unidade", nullable = false, length = 150)
-    private String nomeUnidade;
+    @Column(name = "nome", nullable = false, length = 150)
+    private String nome;
 
-    @Column(name = "gerente_responsavel", nullable = false, length = 100)
-    private String gerenteResponsavel;
+//    @Column(name = "gerente_responsavel", nullable = false, length = 100)
+//    private String gerenteResponsavel;
+//
+//    @Column(name = "responsavel_tecnico", nullable = false, length = 100)
+//    private String responsavelTecnico;
 
-    @Column(name = "responsavel_tecnico", nullable = false, length = 100)
-    private String responsavelTecnico;
+    @OneToMany(mappedBy = "unidade", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    private List<UnidadePerfil> unidadePerfilsVinculados = new ArrayList<>();
+
+    @OneToMany(mappedBy = "unidade", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    private List<UnidadeResponsavelTecnico> unidadeResponsavelTecnicosVinculados = new ArrayList<>();
 }

@@ -30,6 +30,9 @@ public class Turma {
     @Column(name = "valor_contrato_crm", nullable = false)
     private Double valorContratoCrm;
 
+    @Column(name = "numero_contrato_crm", nullable = false)
+    private Integer numeroContratoCrm;
+
     @OneToMany(mappedBy = "turma", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
     private List<TurmaEvento> turmaEventosVinculados = new ArrayList<>();

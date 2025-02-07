@@ -1,16 +1,12 @@
 package gestao.treinamento.controller;
 
 import gestao.treinamento.model.dto.consultas.*;
-import gestao.treinamento.model.entidades.*;
 import gestao.treinamento.service.consultas.*;
 import gestao.treinamento.util.ApiResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -29,6 +25,7 @@ public class ConsultasController {
     private ConsultaCursosService serviceCursos;
     private ConsultaTurmasService serviceTurmas;
     private ConsultaIndustriasService serviceIndustrias;
+    private ConsultaResponsavelTecnicoService serviceResponsavelTecnico;
 
     // GET: Buscar todas as empresas
     @GetMapping("/empresas")
@@ -51,10 +48,18 @@ public class ConsultasController {
         return ResponseEntity.ok(new ApiResponse<>(true, "Modalidades consultadas com sucesso", modalidades));
     }
 
-    // GET: Buscar todos os instrutores
+    // GET: Buscar todos os trabalhadores
     @GetMapping("/trabalhadores")
     public ResponseEntity<ApiResponse<List<TrabalhadorConsultaDTO>>> consultaTrabalhador() {
         List<TrabalhadorConsultaDTO> trabalhadores = serviceTrabalhadores.consultaCadastro();
+        return ResponseEntity.ok(new ApiResponse<>(true, "Trabalhadores consultados com sucesso", trabalhadores));
+    }
+
+    // GET: Buscar trabalhadores por múltiplas empresas (via query params)
+    @GetMapping("/trabalhadores/empresas")
+    public ResponseEntity<ApiResponse<List<TrabalhadorConsultaDTO>>> consultaTrabalhadorPorEmpresas(
+            @RequestParam List<Long> empresaIds) {
+        List<TrabalhadorConsultaDTO> trabalhadores = serviceTrabalhadores.consultaPorEmpresas(empresaIds);
         return ResponseEntity.ok(new ApiResponse<>(true, "Trabalhadores consultados com sucesso", trabalhadores));
     }
 
@@ -84,5 +89,12 @@ public class ConsultasController {
     public ResponseEntity<ApiResponse<List<IndustriaConsultaDTO>>> consultaIndustria() {
         List<IndustriaConsultaDTO> industria = serviceIndustrias.consultaCadastro();
         return ResponseEntity.ok(new ApiResponse<>(true, "Industrias consultadas com sucesso", industria));
+    }
+
+    // GET: Buscar todos os ResponsaveisTecnicos
+    @GetMapping("/responsaveisTecnicos")
+    public ResponseEntity<ApiResponse<List<ResponsavelTecnicoConsultaDTO>>> consultaResponsavelTecnico() {
+        List<ResponsavelTecnicoConsultaDTO> responsavelTecnico = serviceResponsavelTecnico.consultaCadastro();
+        return ResponseEntity.ok(new ApiResponse<>(true, "Responsáveis Técnicos consultados com sucesso", responsavelTecnico));
     }
 }
