@@ -5,8 +5,8 @@ import lombok.Data;
 
 @Data
 @Entity
-@Table(name = "responsavel_tecnico")
-public class ResponsavelTecnico {
+@Table(name = "nivel_visibilidade")
+public class NivelVisibilidade {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -15,10 +15,4 @@ public class ResponsavelTecnico {
 
     @Column(name = "nome", nullable = false, length = 150)
     private String nome;
-
-    @Column(name = "cpf", nullable = false, unique = true, length = 14)
-    private String cpf;
-
-    @Column(name = "numero_conselho")
-    private Integer numeroConselho;
 }

@@ -11,6 +11,6 @@ import java.util.List;
 @Repository
 public interface ConsultaResponsavelTecnicoRepository extends JpaRepository<ResponsavelTecnico, Long> {
 
-    @Query("SELECT new gestao.treinamento.model.dto.consultas.ResponsavelTecnicoConsultaDTO(rt.id, rt.nome) FROM ResponsavelTecnico rt")
+    @Query("SELECT new gestao.treinamento.model.dto.consultas.ResponsavelTecnicoConsultaDTO(rt.id, rt.nome, rt.cpf) FROM ResponsavelTecnico rt")
     List<ResponsavelTecnicoConsultaDTO> findAllResponsavelTecnicoDTO();
 }

@@ -27,4 +27,8 @@ public class Perfil {
     @OneToMany(mappedBy = "perfil", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
     private List<PerfilNivelPermissao> perfilNiveisPermissoesVinculadas = new ArrayList<>();
+
+    @OneToMany(mappedBy = "perfil", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    private List<PerfilNivelVisibilidade> perfilNivelVisibilidadeVinculada = new ArrayList<>();
 }

@@ -26,6 +26,9 @@ public class ConsultasController {
     private ConsultaTurmasService serviceTurmas;
     private ConsultaIndustriasService serviceIndustrias;
     private ConsultaResponsavelTecnicoService serviceResponsavelTecnico;
+    private ConsultaUnidadesService serviceUnidade;
+    private ConsultaNiveisPermissoesService serviceNivelPermissao;
+    private ConsultaNiveisVisibilidadeService serviceNivelVisibilidade;
 
     // GET: Buscar todas as empresas
     @GetMapping("/empresas")
@@ -96,5 +99,26 @@ public class ConsultasController {
     public ResponseEntity<ApiResponse<List<ResponsavelTecnicoConsultaDTO>>> consultaResponsavelTecnico() {
         List<ResponsavelTecnicoConsultaDTO> responsavelTecnico = serviceResponsavelTecnico.consultaCadastro();
         return ResponseEntity.ok(new ApiResponse<>(true, "Responsáveis Técnicos consultados com sucesso", responsavelTecnico));
+    }
+
+    // GET: Buscar todos os Unidades
+    @GetMapping("/unidades")
+    public ResponseEntity<ApiResponse<List<UnidadeConsultaDTO>>> consultaUnidade() {
+        List<UnidadeConsultaDTO> unidade = serviceUnidade.consultaCadastro();
+        return ResponseEntity.ok(new ApiResponse<>(true, "Unidades consultadas com sucesso", unidade));
+    }
+
+    // GET: Buscar todos os NivelPermissao
+    @GetMapping("/niveisPermissoes")
+    public ResponseEntity<ApiResponse<List<NivelPermissaoConsultaDTO>>> consultaNivelPermissao() {
+        List<NivelPermissaoConsultaDTO> nivelPermissao = serviceNivelPermissao.consultaCadastro();
+        return ResponseEntity.ok(new ApiResponse<>(true, "Niveis de permissões consultadas com sucesso", nivelPermissao));
+    }
+
+    // GET: Buscar todos os NivelVisibilidade
+    @GetMapping("/niveisVisibilidades")
+    public ResponseEntity<ApiResponse<List<NivelVisibilidadeConsultaDTO>>> consultaNivelVisibilidade() {
+        List<NivelVisibilidadeConsultaDTO> nivelVisibilidade = serviceNivelVisibilidade.consultaCadastro();
+        return ResponseEntity.ok(new ApiResponse<>(true, "Niveis de visibilidades consultadas com sucesso", nivelVisibilidade));
     }
 }

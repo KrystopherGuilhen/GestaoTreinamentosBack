@@ -158,14 +158,14 @@ public class CadastroTurmasService {
 
     // PUT: Atualizar turma existente
     @Transactional
-    public TurmaDTO atualizarTurma(Long id, TurmaDTO turmaDTO) {
-        Turma turmaExistente = repository.findById(id)
+    public TurmaDTO atualizarTurma(Long id, TurmaDTO dto) {
+        Turma existente = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Turma com ID " + id + " não encontrado"));
 
-        turmaExistente.setNome(turmaDTO.getNome());
+        existente.setNome(dto.getNome());
 
-        if (turmaDTO.getDataInicio() != null) {
-            String dataInicioStr = turmaDTO.getDataInicio();
+        if (dto.getDataInicio() != null) {
+            String dataInicioStr = dto.getDataInicio();
             LocalDate dataInicio = null;
 
             try {
@@ -181,11 +181,11 @@ public class CadastroTurmasService {
                 throw new IllegalArgumentException("Formato de data inválido: " + dataInicioStr);
             }
 
-            turmaExistente.setDataInicio(dataInicio);
+            existente.setDataInicio(dataInicio);
         }
 
-        if (turmaDTO.getDataFim() != null) {
-            String dataFimStr = turmaDTO.getDataFim();
+        if (dto.getDataFim() != null) {
+            String dataFimStr = dto.getDataFim();
             LocalDate dataFim = null;
 
             try {
@@ -201,19 +201,19 @@ public class CadastroTurmasService {
                 throw new IllegalArgumentException("Formato de data inválido: " + dataFimStr);
             }
 
-            turmaExistente.setDataFim(dataFim);
+            existente.setDataFim(dataFim);
         }
 
-        turmaExistente.setValorContratoCrm(turmaDTO.getValorContratoCrm());
-        turmaExistente.setNumeroContratoCrm(turmaDTO.getNumeroContratoCrm());
+        existente.setValorContratoCrm(dto.getValorContratoCrm());
+        existente.setNumeroContratoCrm(dto.getNumeroContratoCrm());
 
         // Atualizar associações com evento
-        if (turmaDTO.getIdEventoVinculo() != null) {
+        if (dto.getIdEventoVinculo() != null) {
             // Recuperar as associações existentes (com a chave composta idTurma e idEvento)
             List<Long> idsEventosVinculadas = turmaEventoRepository.findEventoByTurmaId(id);
 
             // Verificar se o evento atual está na lista de associações
-            Long idEventoVinculo = turmaDTO.getIdEventoVinculo();
+            Long idEventoVinculo = dto.getIdEventoVinculo();
 
             // Remover associações que não correspondem ao novo evento vinculado
             List<Long> idsParaRemover = idsEventosVinculadas.stream()
@@ -232,7 +232,7 @@ public class CadastroTurmasService {
 
                 // Criar a nova associação
                 TurmaEvento novaAssociacao = new TurmaEvento();
-                novaAssociacao.setTurma(turmaExistente);
+                novaAssociacao.setTurma(existente);
                 novaAssociacao.setEvento(evento);
 
                 // Salvar a nova associação
@@ -241,12 +241,12 @@ public class CadastroTurmasService {
         }
 
         // Atualizar associações com modalidade
-        if (turmaDTO.getIdModalidadeVinculo() != null) {
+        if (dto.getIdModalidadeVinculo() != null) {
             // Recuperar as associações existentes (com a chave composta idTurma e idModalidade)
             List<Long> idsModalidadesVinculadas = turmaModalidadeRepository.findModalidadeByTurmaId(id);
 
             // Verificar se o modalidade atual está na lista de associações
-            Long idModalidadeVinculo = turmaDTO.getIdModalidadeVinculo();
+            Long idModalidadeVinculo = dto.getIdModalidadeVinculo();
 
             // Remover associações que não correspondem ao novo modalidade vinculado
             List<Long> idsParaRemover = idsModalidadesVinculadas.stream()
@@ -265,7 +265,7 @@ public class CadastroTurmasService {
 
                 // Criar a nova associação
                 TurmaModalidade novaAssociacao = new TurmaModalidade();
-                novaAssociacao.setTurma(turmaExistente);
+                novaAssociacao.setTurma(existente);
                 novaAssociacao.setModalidade(modalidade);
 
                 // Salvar a nova associação
@@ -274,25 +274,25 @@ public class CadastroTurmasService {
         }
 
         // Atualizar associações com trabalhadores
-        if (turmaDTO.getIdTrabalhadorVinculo() != null) {
+        if (dto.getIdTrabalhadorVinculo() != null) {
             // Recuperar as associações existentes (com a chave composta idTurma e idTrabalhador)
             List<Long> idsTrabalhadorsVinculadas = turmaTrabalhadorRepository.findTrabalhadorByTurmaId(id);
 
             // Remover associações que não estão mais na lista
             List<Long> idsParaRemover = idsTrabalhadorsVinculadas.stream()
-                    .filter(idTrabalhador -> !turmaDTO.getIdTrabalhadorVinculo().contains(idTrabalhador))
+                    .filter(idTrabalhador -> !dto.getIdTrabalhadorVinculo().contains(idTrabalhador))
                     .toList();
             turmaTrabalhadorRepository.deleteByTurmaIdAndTrabalhadorIds(id, idsParaRemover);
 
             // Adicionar novas associações (para cada trabalhador que não existe na tabela)
-            for (Long idTrabalhador : turmaDTO.getIdTrabalhadorVinculo()) {
+            for (Long idTrabalhador : dto.getIdTrabalhadorVinculo()) {
                 boolean existe = turmaTrabalhadorRepository.existsByTurmaIdAndTrabalhadorId(id, idTrabalhador);
                 if (!existe) {
                     Trabalhador trabalhador = trabalhadoresRepository.findById(idTrabalhador)
                             .orElseThrow(() -> new EntityNotFoundException("Trabalhador com ID " + idTrabalhador + " não encontrada"));
 
                     TurmaTrabalhador novaAssociacao = new TurmaTrabalhador();
-                    novaAssociacao.setTurma(turmaExistente);
+                    novaAssociacao.setTurma(existente);
                     novaAssociacao.setTrabalhador(trabalhador);
 
                     // Aqui, a chave primária (ID) será gerada automaticamente, já que a tabela tem uma chave composta
@@ -302,12 +302,12 @@ public class CadastroTurmasService {
         }
 
         // Atualizar associações com instrutor
-        if (turmaDTO.getIdInstrutorVinculo() != null) {
+        if (dto.getIdInstrutorVinculo() != null) {
             // Recuperar as associações existentes (com a chave composta idTurma e idInstrutor)
             List<Long> idsInstrutorsVinculadas = turmaInstrutorRepository.findInstrutorByTurmaId(id);
 
             // Verificar se o instrutor atual está na lista de associações
-            Long idInstrutorVinculo = turmaDTO.getIdInstrutorVinculo();
+            Long idInstrutorVinculo = dto.getIdInstrutorVinculo();
 
             // Remover associações que não correspondem ao novo instrutor vinculado
             List<Long> idsParaRemover = idsInstrutorsVinculadas.stream()
@@ -326,7 +326,7 @@ public class CadastroTurmasService {
 
                 // Criar a nova associação
                 TurmaInstrutor novaAssociacao = new TurmaInstrutor();
-                novaAssociacao.setTurma(turmaExistente);
+                novaAssociacao.setTurma(existente);
                 novaAssociacao.setInstrutor(instrutor);
 
                 // Salvar a nova associação
@@ -335,25 +335,25 @@ public class CadastroTurmasService {
         }
 
         // Atualizar associações com empresas
-        if (turmaDTO.getIdEmpresaVinculo() != null) {
+        if (dto.getIdEmpresaVinculo() != null) {
             // Recuperar as associações existentes (com a chave composta idTurma e idEmpresa)
             List<Long> idsEmpresasVinculadas = turmaEmpresaRepository.findEmpresaByTurmaId(id);
 
             // Remover associações que não estão mais na lista
             List<Long> idsParaRemover = idsEmpresasVinculadas.stream()
-                    .filter(idEmpresa -> !turmaDTO.getIdEmpresaVinculo().contains(idEmpresa))
+                    .filter(idEmpresa -> !dto.getIdEmpresaVinculo().contains(idEmpresa))
                     .toList();
             turmaEmpresaRepository.deleteByTurmaIdAndEmpresaIds(id, idsParaRemover);
 
             // Adicionar novas associações (para cada empresa que não existe na tabela)
-            for (Long idEmpresa : turmaDTO.getIdEmpresaVinculo()) {
+            for (Long idEmpresa : dto.getIdEmpresaVinculo()) {
                 boolean existe = turmaEmpresaRepository.existsByTurmaIdAndEmpresaId(id, idEmpresa);
                 if (!existe) {
                     Empresa empresa = empresasRepository.findById(idEmpresa)
                             .orElseThrow(() -> new EntityNotFoundException("Trabalhador com ID " + idEmpresa + " não encontrada"));
 
                     TurmaEmpresa novaAssociacao = new TurmaEmpresa();
-                    novaAssociacao.setTurma(turmaExistente);
+                    novaAssociacao.setTurma(existente);
                     novaAssociacao.setEmpresa(empresa);
 
                     // Aqui, a chave primária (ID) será gerada automaticamente, já que a tabela tem uma chave composta
@@ -363,12 +363,12 @@ public class CadastroTurmasService {
         }
 
         // Atualizar associações com curso
-        if (turmaDTO.getIdCursoVinculo() != null) {
+        if (dto.getIdCursoVinculo() != null) {
             // Recuperar as associações existentes (com a chave composta idTurma e idCurso)
             List<Long> idsCursosVinculados = turmaCursoRepository.findCursoByTurmaId(id);
 
             // Verificar se o curso atual está na lista de associações
-            Long idCursoVinculo = turmaDTO.getIdCursoVinculo();
+            Long idCursoVinculo = dto.getIdCursoVinculo();
 
             // Remover associações que não correspondem ao novo curso vinculado
             List<Long> idsParaRemover = idsCursosVinculados.stream()
@@ -387,7 +387,7 @@ public class CadastroTurmasService {
 
                 // Criar a nova associação
                 TurmaCurso novaAssociacao = new TurmaCurso();
-                novaAssociacao.setTurma(turmaExistente);
+                novaAssociacao.setTurma(existente);
                 novaAssociacao.setCurso(curso);
 
                 // Salvar a nova associação
@@ -395,9 +395,9 @@ public class CadastroTurmasService {
             }
         }
 
-        turmaExistente.setObservacaoNr(turmaDTO.getObservacaoNr());
+        existente.setObservacaoNr(dto.getObservacaoNr());
 
-        Turma turmaAtualizado = repository.save(turmaExistente);
+        Turma turmaAtualizado = repository.save(existente);
         return convertToDTO(turmaAtualizado);
     }
 

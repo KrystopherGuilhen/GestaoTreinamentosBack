@@ -4,7 +4,9 @@ import gestao.treinamento.model.dto.cadastros.CursoDTO;
 import gestao.treinamento.model.entidades.Curso;
 import gestao.treinamento.model.entidades.CursoModalidade;
 import gestao.treinamento.model.entidades.Modalidade;
-import gestao.treinamento.repository.cadastros.*;
+import gestao.treinamento.repository.cadastros.CadastroCursoModalidadeRepository;
+import gestao.treinamento.repository.cadastros.CadastroCursosRepository;
+import gestao.treinamento.repository.cadastros.CadastroModalidadesRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,16 +84,16 @@ public class CadastroCursosService {
 
     // PUT: Atualizar Curso existente
     @Transactional
-    public CursoDTO atualizarCurso(Long id, CursoDTO cursoDTO) {
-        Curso cursoExistente = repository.findById(id)
+    public CursoDTO atualizarCurso(Long id, CursoDTO dto) {
+        Curso existente = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Curso com ID " + id + " não encontrado"));
 
-        cursoExistente.setNome(cursoDTO.getNome());
-        cursoExistente.setConteudoProgramatico(cursoDTO.getConteudoProgramatico());
-        cursoExistente.setCargaHorariaTotal(cursoDTO.getCargaHorariaTotal());
-        cursoExistente.setCargaHorariaEad(cursoDTO.getCargaHorariaEad());
-        cursoExistente.setCargaHorariaPresencial(cursoDTO.getCargaHorariaPresencial());
-        cursoExistente.setPeriodoValidade(cursoDTO.getPeriodoValidade());
+        existente.setNome(dto.getNome());
+        existente.setConteudoProgramatico(dto.getConteudoProgramatico());
+        existente.setCargaHorariaTotal(dto.getCargaHorariaTotal());
+        existente.setCargaHorariaEad(dto.getCargaHorariaEad());
+        existente.setCargaHorariaPresencial(dto.getCargaHorariaPresencial());
+        existente.setPeriodoValidade(dto.getPeriodoValidade());
         //cursoExistente.setValorContratoCrm(cursoDTO.getValorContratoCrm());
 
         // Atualizar associações com empresas
@@ -123,12 +125,12 @@ public class CadastroCursosService {
 //        }
 
         // Atualizar associações com modalidade
-        if (cursoDTO.getIdModalidadeVinculo() != null) {
+        if (dto.getIdModalidadeVinculo() != null) {
             // Recuperar as associações existentes (com a chave composta idCurso e idModalidade)
             List<Long> idsModalidadesVinculadas = cursoModalidadeRepository.findModalidadeByCursoId(id);
 
             // Verificar se o modalidade atual está na lista de associações
-            Long idModalidadeVinculo = cursoDTO.getIdModalidadeVinculo();
+            Long idModalidadeVinculo = dto.getIdModalidadeVinculo();
 
             // Remover associações que não correspondem ao novo modalidade vinculado
             List<Long> idsParaRemover = idsModalidadesVinculadas.stream()
@@ -147,7 +149,7 @@ public class CadastroCursosService {
 
                 // Criar a nova associação
                 CursoModalidade novaAssociacao = new CursoModalidade();
-                novaAssociacao.setCurso(cursoExistente);
+                novaAssociacao.setCurso(existente);
                 novaAssociacao.setModalidade(modalidade);
 
                 // Salvar a nova associação
@@ -155,7 +157,7 @@ public class CadastroCursosService {
             }
         }
 
-        Curso cursoAtualizado = repository.save(cursoExistente);
+        Curso cursoAtualizado = repository.save(existente);
         return convertToDTO(cursoAtualizado);
     }
 

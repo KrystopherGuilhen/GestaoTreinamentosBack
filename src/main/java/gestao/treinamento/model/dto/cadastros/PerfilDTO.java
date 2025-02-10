@@ -14,10 +14,13 @@ public class PerfilDTO {
     private Long id;
     private String nome;
 
-//    private Long idUnidadeVinculo;
-//    private List<String> nomeUnidadeVinculo;
+    private Long idUnidadeVinculo;
+    private List<String> nomeUnidadeVinculo;
 
     private List<Long> idNivelPermissaoVinculo;
     private List<String> nomeNivelPermissaoVinculo;
+
+    private List<Long> idNivelVisibilidadeVinculo;
+    private List<String> nomeNivelVisibilidadeVinculo;
 
 }

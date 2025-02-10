@@ -7,9 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ResponsavelTecnicoConsultaDTO {
+public class NivelVisibilidadeConsultaDTO {
 
     private Long id;
     private String nome;
-    private String cpf;
 }

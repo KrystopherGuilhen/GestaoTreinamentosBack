@@ -2,8 +2,6 @@ package gestao.treinamento.service.cadastros;
 
 import gestao.treinamento.model.dto.cadastros.PalestraDTO;
 import gestao.treinamento.model.entidades.Palestra;
-import gestao.treinamento.model.entidades.PalestraEmpresa;
-import gestao.treinamento.model.entidades.Empresa;
 import gestao.treinamento.repository.cadastros.CadastroPalestraEmpresaRepository;
 import gestao.treinamento.repository.cadastros.CadastroPalestrasRepository;
 import gestao.treinamento.repository.cadastros.CadastroEmpresasRepository;
@@ -13,10 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -68,12 +63,12 @@ public class CadastroPalestrasService {
 
     // PUT: Atualizar palestra existente
     @Transactional
-    public PalestraDTO atualizarPalestra(Long id, PalestraDTO palestraDTO) {
-        Palestra palestraExistente = repository.findById(id)
+    public PalestraDTO atualizarPalestra(Long id, PalestraDTO dto) {
+        Palestra existente = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Palestra com ID " + id + " não encontrado"));
 
-        palestraExistente.setNomeEvento(palestraDTO.getNomeEvento());
-        palestraExistente.setCidadeEvento(palestraDTO.getCidadeEvento());
+        existente.setNomeEvento(dto.getNomeEvento());
+        existente.setCidadeEvento(dto.getCidadeEvento());
 
 //        if (palestraDTO.getDataInicio() != null) {
 //            String dataInicioStr = palestraDTO.getDataInicio();
@@ -117,8 +112,8 @@ public class CadastroPalestrasService {
 
         //palestraExistente.setValorContratoCrm(palestraDTO.getValorContratoCrm());
         //palestraExistente.setNumeroContratoCrm(palestraDTO.getNumeroContratoCrm());
-        palestraExistente.setConteudoProgramatico(palestraDTO.getConteudoProgramatico());
-        palestraExistente.setObservacao(palestraDTO.getObservacao());
+        existente.setConteudoProgramatico(dto.getConteudoProgramatico());
+        existente.setObservacao(dto.getObservacao());
 
         // Atualizar associações com empresas
 //        if (palestraDTO.getIdEmpresaVinculo() != null) {
@@ -148,7 +143,7 @@ public class CadastroPalestrasService {
 //            }
 //        }
 
-        Palestra palestraAtualizado = repository.save(palestraExistente);
+        Palestra palestraAtualizado = repository.save(existente);
         return convertToDTO(palestraAtualizado);
     }
 

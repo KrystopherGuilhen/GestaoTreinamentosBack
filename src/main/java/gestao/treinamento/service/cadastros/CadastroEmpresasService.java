@@ -60,27 +60,27 @@ public class CadastroEmpresasService {
         return convertToDTO(empresa);
     }
 
-    public EmpresaDTO atualizarEmpresa(Long id, EmpresaDTO empresaDTO) {
+    public EmpresaDTO atualizarEmpresa(Long id, EmpresaDTO dto) {
         Empresa existente = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Empresa não encontrado com ID: " + id));
 
-        existente.setNome(empresaDTO.getNome());
-        existente.setCidade(empresaDTO.getCidade());
-        existente.setEstado(empresaDTO.getEstado());
-        existente.setTelefone(empresaDTO.getTelefone());
-        existente.setCnpj(empresaDTO.getCnpj());
-        existente.setCpf(empresaDTO.getCpf());
-        existente.setNomeResponsavelEmpresa(empresaDTO.getNomeResponsavelEmpresa());
-        existente.setEmailResponsavelEmpresa(empresaDTO.getEmailResponsavelEmpresa());
-        existente.setRelacaoEspacoConfinado(empresaDTO.getRelacaoEspacoConfinado());
+        existente.setNome(dto.getNome());
+        existente.setCidade(dto.getCidade());
+        existente.setEstado(dto.getEstado());
+        existente.setTelefone(dto.getTelefone());
+        existente.setCnpj(dto.getCnpj());
+        existente.setCpf(dto.getCpf());
+        existente.setNomeResponsavelEmpresa(dto.getNomeResponsavelEmpresa());
+        existente.setEmailResponsavelEmpresa(dto.getEmailResponsavelEmpresa());
+        existente.setRelacaoEspacoConfinado(dto.getRelacaoEspacoConfinado());
 
         // Atualizar associações com industria
-        if (empresaDTO.getIdIndustriaVinculo() != null) {
+        if (dto.getIdIndustriaVinculo() != null) {
             // Recuperar as associações existentes (com a chave composta idEmpresa e idIndustria)
             List<Long> idsIndustriasVinculadas = empresaIndustriaRepository.findIndustriaByEmpresaId(id);
 
             // Verificar se o modalidade atual está na lista de associações
-            Long idIndustriaVinculo = empresaDTO.getIdIndustriaVinculo();
+            Long idIndustriaVinculo = dto.getIdIndustriaVinculo();
 
             // Remover associações que não correspondem ao novo modalidade vinculado
             List<Long> idsParaRemover = idsIndustriasVinculadas.stream()

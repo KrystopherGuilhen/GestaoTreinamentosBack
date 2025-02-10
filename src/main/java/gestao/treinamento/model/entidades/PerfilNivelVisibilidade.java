@@ -5,8 +5,8 @@ import lombok.Data;
 
 @Data
 @Entity
-@Table(name = "perfil_nivel_permissao")
-public class PerfilNivelPermissao {
+@Table(name = "perfil_nivel_visibilidade")
+public class PerfilNivelVisibilidade {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,6 +18,6 @@ public class PerfilNivelPermissao {
     private Perfil perfil;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "nivel_permissao_id", nullable = false)
-    private NivelPermissao nivelPermissao;
+    @JoinColumn(name = "nivel_visibilidade_id", nullable = false)
+    private NivelVisibilidade nivelVisibilidade;
 }

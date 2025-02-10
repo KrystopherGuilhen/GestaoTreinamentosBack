@@ -68,19 +68,19 @@ public class CadastroTrabalhadoresService {
 
     // PUT: Atualizar trabalhador existente
     @Transactional
-    public TrabalhadorDTO atualizarTrabalhador(Long id, TrabalhadorDTO trabalhadorDTO) {
-        Trabalhador trabalhadorExistente = repository.findById(id)
+    public TrabalhadorDTO atualizarTrabalhador(Long id, TrabalhadorDTO dto) {
+        Trabalhador existente = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Trabalhador com ID " + id + " não encontrado"));
 
-        trabalhadorExistente.setNome(trabalhadorDTO.getNome());
-        trabalhadorExistente.setCidade(trabalhadorDTO.getCidade());
-        trabalhadorExistente.setEstado(trabalhadorDTO.getEstado());
-        trabalhadorExistente.setTelefone(trabalhadorDTO.getTelefone());
-        trabalhadorExistente.setCpf(trabalhadorDTO.getCpf());
-        trabalhadorExistente.setRg(trabalhadorDTO.getRg());
+        existente.setNome(dto.getNome());
+        existente.setCidade(dto.getCidade());
+        existente.setEstado(dto.getEstado());
+        existente.setTelefone(dto.getTelefone());
+        existente.setCpf(dto.getCpf());
+        existente.setRg(dto.getRg());
 
-        if (trabalhadorDTO.getDataNascimento() != null) {
-            String dataNascimentoStr = trabalhadorDTO.getDataNascimento();
+        if (dto.getDataNascimento() != null) {
+            String dataNascimentoStr = dto.getDataNascimento();
             LocalDate dataNascimento = null;
 
             try {
@@ -96,31 +96,31 @@ public class CadastroTrabalhadoresService {
                 throw new IllegalArgumentException("Formato de data inválido: " + dataNascimentoStr);
             }
 
-            trabalhadorExistente.setDataNascimento(dataNascimento);
+            existente.setDataNascimento(dataNascimento);
         }
 
-        trabalhadorExistente.setEmail(trabalhadorDTO.getEmail());
+        existente.setEmail(dto.getEmail());
 
         // Atualizar associações com empresas
-        if (trabalhadorDTO.getIdEmpresaVinculo() != null) {
+        if (dto.getIdEmpresaVinculo() != null) {
             // Recuperar as associações existentes (com a chave composta idTrabalhador e idEmpresa)
             List<Long> idsEmpresasVinculadas = trabalhadorEmpresaRepository.findEmpresasByTrabalhadorId(id);
 
             // Remover associações que não estão mais na lista
             List<Long> idsParaRemover = idsEmpresasVinculadas.stream()
-                    .filter(idEmpresa -> !trabalhadorDTO.getIdEmpresaVinculo().contains(idEmpresa))
+                    .filter(idEmpresa -> !dto.getIdEmpresaVinculo().contains(idEmpresa))
                     .toList();
             trabalhadorEmpresaRepository.deleteByTrabalhadorIdAndEmpresaIds(id, idsParaRemover);
 
             // Adicionar novas associações (para cada empresa que não existe na tabela)
-            for (Long idEmpresa : trabalhadorDTO.getIdEmpresaVinculo()) {
+            for (Long idEmpresa : dto.getIdEmpresaVinculo()) {
                 boolean existe = trabalhadorEmpresaRepository.existsByTrabalhadorIdAndEmpresaId(id, idEmpresa);
                 if (!existe) {
                     Empresa empresa = empresaRepository.findById(idEmpresa)
                             .orElseThrow(() -> new EntityNotFoundException("Empresa com ID " + idEmpresa + " não encontrada"));
 
                     TrabalhadorEmpresa novaAssociacao = new TrabalhadorEmpresa();
-                    novaAssociacao.setTrabalhador(trabalhadorExistente);
+                    novaAssociacao.setTrabalhador(existente);
                     novaAssociacao.setEmpresa(empresa);
 
                     // Aqui, a chave primária (ID) será gerada automaticamente, já que a tabela tem uma chave composta
@@ -129,7 +129,7 @@ public class CadastroTrabalhadoresService {
             }
         }
 
-        Trabalhador trabalhadorAtualizado = repository.save(trabalhadorExistente);
+        Trabalhador trabalhadorAtualizado = repository.save(existente);
         return convertToDTO(trabalhadorAtualizado);
     }
 

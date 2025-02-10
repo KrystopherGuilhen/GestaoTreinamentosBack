@@ -2,9 +2,7 @@ package gestao.treinamento.controller;
 
 import gestao.treinamento.exception.ResourceNotFoundException;
 import gestao.treinamento.model.dto.cadastros.*;
-import gestao.treinamento.model.entidades.Empresa;
 import gestao.treinamento.model.entidades.Instrutor;
-import gestao.treinamento.model.entidades.Unidade;
 import gestao.treinamento.service.cadastros.*;
 import gestao.treinamento.util.ApiResponse;
 import jakarta.validation.Valid;
@@ -30,7 +28,8 @@ public class CadastroController {
     private CadastroCursosService serviceCursos;
     private CadastroPalestrasService servicePalestras;
     private CadastroTurmasService serviceTurmas;
-    //private CadastroMatriculasTrabalhadoresService serviceMatriculasTrabalhadores;
+    private CadastroPerfilService servicePerfis;
+    private CadastroResponsavelTecnicoService serviceResponsavelTecnico;
 
 
     // GET: Buscar todos os instrutores
@@ -326,5 +325,77 @@ public class CadastroController {
         return ResponseEntity.ok(response);
     }
 
+    // GET: Buscar todos os perfils
+    @GetMapping("/perfis")
+    public ResponseEntity<ApiResponse<List<PerfilDTO>>> getTodosPerfil() {
+        List<PerfilDTO> perfil = servicePerfis.consultaCadastro();
+        ApiResponse<List<PerfilDTO>> response = new ApiResponse<>(true, "Perfis recuperados com sucesso", perfil);
+        return ResponseEntity.ok(response);
+    }
 
+    // POST: Criar uma nova perfil
+    @PostMapping("/perfis")
+    public ResponseEntity<ApiResponse<PerfilDTO>> criarPerfil(@RequestBody PerfilDTO perfil) {
+        PerfilDTO novaPerfil = servicePerfis.criarPerfil(perfil);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiResponse<>(true, "Perfil criado com sucesso", novaPerfil));
+    }
+
+    // PUT: Atualizar uma perfil existente
+    @PutMapping("/perfis/{id}")
+    public ResponseEntity<ApiResponse<PerfilDTO>> atualizarPerfil(@PathVariable Long id, @RequestBody PerfilDTO perfil) {
+        PerfilDTO perfilAtualizada = servicePerfis.atualizarPerfil(id, perfil);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Perfil atualizado com sucesso", perfilAtualizada));
+    }
+
+    // DELETE: Deletar uma perfil pelo ID
+    @DeleteMapping("/perfis/{id}")
+    public ResponseEntity<ApiResponse<Void>> deletarPerfil(@PathVariable Long id) {
+        servicePerfis.deletarPerfil(id);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Perfil deletado com sucesso", null));
+    }
+
+    // DELETE múltiplo: Deletar varias perfils pelos IDs
+    @DeleteMapping("/perfils")
+    public ResponseEntity<ApiResponse<Void>> deletarPerfils(@RequestBody List<Long> ids) {
+        servicePerfis.deletarPerfils(ids);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Perfis deletadas com sucesso", null));
+    }
+
+    // GET: Buscar todos os responsavelTecnicos
+    @GetMapping("/responsavelTecnico")
+    public ResponseEntity<ApiResponse<List<ResponsavelTecnicoDTO>>> getTodosResponsavelTecnico() {
+        List<ResponsavelTecnicoDTO> responsavelTecnico = serviceResponsavelTecnico.consultaCadastro();
+        ApiResponse<List<ResponsavelTecnicoDTO>> response = new ApiResponse<>(true, "Responsáveis Técnicos recuperados com sucesso", responsavelTecnico);
+        return ResponseEntity.ok(response);
+    }
+
+    // POST: Criar uma nova responsavelTecnico
+    @PostMapping("/responsavelTecnico")
+    public ResponseEntity<ApiResponse<ResponsavelTecnicoDTO>> criarResponsavelTecnico(@RequestBody ResponsavelTecnicoDTO responsavelTecnico) {
+        ResponsavelTecnicoDTO novaResponsavelTecnico = serviceResponsavelTecnico.criarResponsavelTecnico(responsavelTecnico);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiResponse<>(true, "Responsável Técnico criado com sucesso", novaResponsavelTecnico));
+    }
+
+    // PUT: Atualizar uma responsavelTecnico existente
+    @PutMapping("/responsavelTecnico/{id}")
+    public ResponseEntity<ApiResponse<ResponsavelTecnicoDTO>> atualizarResponsavelTecnico(@PathVariable Long id, @RequestBody ResponsavelTecnicoDTO responsavelTecnico) {
+        ResponsavelTecnicoDTO responsavelTecnicoAtualizada = serviceResponsavelTecnico.atualizarResponsavelTecnico(id, responsavelTecnico);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Responsável Técnico atualizado com sucesso", responsavelTecnicoAtualizada));
+    }
+
+    // DELETE: Deletar uma responsavelTecnico pelo ID
+    @DeleteMapping("/responsavelTecnico/{id}")
+    public ResponseEntity<ApiResponse<Void>> deletarResponsavelTecnico(@PathVariable Long id) {
+        serviceResponsavelTecnico.deletarResponsavelTecnico(id);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Responsável Técnico deletado com sucesso", null));
+    }
+
+    // DELETE múltiplo: Deletar varias responsavelTecnicos pelos IDs
+    @DeleteMapping("/responsavelTecnico")
+    public ResponseEntity<ApiResponse<Void>> deletarResponsavelTecnicos(@RequestBody List<Long> ids) {
+        serviceResponsavelTecnico.deletarResponsavelTecnicos(ids);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Responsáveis Técnicos deletadas com sucesso", null));
+    }
 }

@@ -41,6 +41,9 @@ public class CadastroUnidadesService {
         // Converter o DTO para entidade unidade
         Unidade unidade = convertToEntity(dto);
 
+        // Salvar o unidade e obter o ID gerado
+        unidade = repository.save(unidade);
+
         // Verificar se há um responsavelTecnico vinculado no DTO
         if (dto.getIdResponsavelTecnicoVinculo() != null) {
             // Recuperar o responsavelTecnico pelo ID
@@ -70,9 +73,6 @@ public class CadastroUnidadesService {
             // Salvar a associação
             unidadePerfilRepository.save(unidadePerfil);
         }
-
-        // Salvar o unidade e obter o ID gerado
-        unidade = repository.save(unidade);
 
         //Retornar o DTO de Unidade criada
         return convertToDTO(unidade);
