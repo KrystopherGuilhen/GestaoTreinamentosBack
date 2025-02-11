@@ -11,8 +11,8 @@ import java.util.List;
 @NoArgsConstructor
 public class PerfilNivelPermissaoDTO {
 
-    private Long id;
-    private String nome;
+    private Long idPermissao;
+    private String nomePermissao;
 
     List<PerfilNivelVisibilidadeDTO> perfilNivelVisibilidadeDTO;
 }

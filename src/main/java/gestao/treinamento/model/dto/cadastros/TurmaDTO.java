@@ -27,7 +27,7 @@ public class TurmaDTO {
     private List<Long> idTrabalhadorVinculo;
     private List<String> nomeTrabalhadorVinculo;
 
-    private Long idInstrutorVinculo;
+    private List<Long> idInstrutorVinculo;
     private List<String> nomeInstrutorVinculo;
 
     private List<Long> idEmpresaVinculo;

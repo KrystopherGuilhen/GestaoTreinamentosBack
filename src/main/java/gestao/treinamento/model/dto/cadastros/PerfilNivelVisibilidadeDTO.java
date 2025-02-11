@@ -9,6 +9,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class PerfilNivelVisibilidadeDTO {
 
-    private Long id;
-    private String nome;
+    private Long idVisibilidade;
+    private String nomeVisibilidade;
 }

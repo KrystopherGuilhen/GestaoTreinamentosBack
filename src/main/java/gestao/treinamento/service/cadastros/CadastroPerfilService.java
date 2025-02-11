@@ -61,8 +61,8 @@ public class CadastroPerfilService {
         // Processar as permissões
         if (dto.getPerfilNivelPermissaoDTO() != null) {
             for (PerfilNivelPermissaoDTO nivelPermissaoDTO : dto.getPerfilNivelPermissaoDTO()) {
-                NivelPermissao nivelPermissao = nivelPermissaoRepository.findById(nivelPermissaoDTO.getId())
-                        .orElseThrow(() -> new RuntimeException("NivelPermissao não encontrado: ID " + nivelPermissaoDTO.getId()));
+                NivelPermissao nivelPermissao = nivelPermissaoRepository.findById(nivelPermissaoDTO.getIdPermissao())
+                        .orElseThrow(() -> new RuntimeException("NivelPermissao não encontrado: ID " + nivelPermissaoDTO.getNomePermissao()));
 
                 PerfilNivelPermissao perfilNivelPermissao = new PerfilNivelPermissao();
                 perfilNivelPermissao.setPerfil(perfil);
@@ -72,8 +72,8 @@ public class CadastroPerfilService {
                 // Processar as visibilidades
                 if (nivelPermissaoDTO.getPerfilNivelVisibilidadeDTO() != null) {
                     for (PerfilNivelVisibilidadeDTO visibilidadeDTO : nivelPermissaoDTO.getPerfilNivelVisibilidadeDTO()) {
-                        NivelVisibilidade nivelVisibilidade = nivelVisibilidadeRepository.findById(visibilidadeDTO.getId())
-                                .orElseThrow(() -> new RuntimeException("NivelVisibilidade não encontrado: ID " + visibilidadeDTO.getId()));
+                        NivelVisibilidade nivelVisibilidade = nivelVisibilidadeRepository.findById(visibilidadeDTO.getIdVisibilidade())
+                                .orElseThrow(() -> new RuntimeException("NivelVisibilidade não encontrado: ID " + visibilidadeDTO.getIdVisibilidade()));
 
                         PerfilNivelVisibilidade perfilNivelVisibilidade = new PerfilNivelVisibilidade();
                         perfilNivelVisibilidade.setPerfil(perfil);
@@ -138,13 +138,13 @@ public class CadastroPerfilService {
             // Remover associações que não estão mais na lista
             List<Long> idsParaRemover = idsNivelPermissaoVinculadas.stream()
                     .filter(idNivelPermissao -> !dto.getPerfilNivelPermissaoDTO().stream()
-                            .anyMatch(p -> p.getId().equals(idNivelPermissao)))
+                            .anyMatch(p -> p.getIdPermissao().equals(idNivelPermissao)))
                     .toList();
             perfilNivelPermissaoRepository.deleteByPerfilIdAndNivelPermissaoIds(id, idsParaRemover);
 
             // Adicionar novas associações (para cada nivelPermissao que não existe na tabela)
             for (PerfilNivelPermissaoDTO perfilNivelPermissaoDTO : dto.getPerfilNivelPermissaoDTO()) {
-                Long idNivelPermissao = perfilNivelPermissaoDTO.getId();
+                Long idNivelPermissao = perfilNivelPermissaoDTO.getIdPermissao();
 
                 boolean existe = perfilNivelPermissaoRepository.existsByPerfilIdAndNivelPermissaoId(id, idNivelPermissao);
                 if (!existe) {
@@ -161,8 +161,8 @@ public class CadastroPerfilService {
                     // Atualizar as visibilidades dentro de cada nível de permissão
                     if (perfilNivelPermissaoDTO.getPerfilNivelVisibilidadeDTO() != null) {
                         for (PerfilNivelVisibilidadeDTO visibilidadeDTO : perfilNivelPermissaoDTO.getPerfilNivelVisibilidadeDTO()) {
-                            NivelVisibilidade nivelVisibilidade = nivelVisibilidadeRepository.findById(visibilidadeDTO.getId())
-                                    .orElseThrow(() -> new EntityNotFoundException("NivelVisibilidade com ID " + visibilidadeDTO.getId() + " não encontrado"));
+                            NivelVisibilidade nivelVisibilidade = nivelVisibilidadeRepository.findById(visibilidadeDTO.getIdVisibilidade())
+                                    .orElseThrow(() -> new EntityNotFoundException("NivelVisibilidade com ID " + visibilidadeDTO.getIdVisibilidade() + " não encontrado"));
 
                             // Agora, o nivelPermissao é corretamente definido no escopo
                             PerfilNivelVisibilidade novaVisibilidade = new PerfilNivelVisibilidade();
@@ -223,15 +223,15 @@ public class CadastroPerfilService {
         List<PerfilNivelPermissaoDTO> nivelPermissaoDTOList = new ArrayList<>();
         for (PerfilNivelPermissao perfilNivelPermissao : perfil.getPerfilNiveisPermissoesVinculadas()) {
             PerfilNivelPermissaoDTO nivelPermissaoDTO = new PerfilNivelPermissaoDTO();
-            nivelPermissaoDTO.setId(perfilNivelPermissao.getNivelPermissao().getId());
-            nivelPermissaoDTO.setNome(perfilNivelPermissao.getNivelPermissao().getNome());
+            nivelPermissaoDTO.setIdPermissao(perfilNivelPermissao.getNivelPermissao().getId());
+            nivelPermissaoDTO.setNomePermissao(perfilNivelPermissao.getNivelPermissao().getNome());
 
             // Associar Níveis de Visibilidade para este Nível de Permissão
             List<PerfilNivelVisibilidadeDTO> visibilidadeDTOList = new ArrayList<>();
             for (PerfilNivelVisibilidade perfilNivelVisibilidade : perfilNivelPermissao.getPerfil().getPerfilNivelVisibilidadeVinculada()) {
                 PerfilNivelVisibilidadeDTO visibilidadeDTO = new PerfilNivelVisibilidadeDTO();
-                visibilidadeDTO.setId(perfilNivelVisibilidade.getNivelVisibilidade().getId());
-                visibilidadeDTO.setNome(perfilNivelVisibilidade.getNivelVisibilidade().getNome());
+                visibilidadeDTO.setIdVisibilidade(perfilNivelVisibilidade.getNivelVisibilidade().getId());
+                visibilidadeDTO.setNomeVisibilidade(perfilNivelVisibilidade.getNivelVisibilidade().getNome());
                 visibilidadeDTOList.add(visibilidadeDTO);
             }
 
