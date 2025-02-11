@@ -2,6 +2,8 @@ package gestao.treinamento.service.cadastros;
 
 import gestao.treinamento.exception.ResourceNotFoundException;
 import gestao.treinamento.model.dto.cadastros.PerfilDTO;
+import gestao.treinamento.model.dto.cadastros.PerfilNivelPermissaoDTO;
+import gestao.treinamento.model.dto.cadastros.PerfilNivelVisibilidadeDTO;
 import gestao.treinamento.model.entidades.*;
 import gestao.treinamento.repository.cadastros.*;
 import jakarta.persistence.EntityNotFoundException;
@@ -10,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -39,65 +41,53 @@ public class CadastroPerfilService {
     // POST: Criar novo perfil
     @Transactional
     public PerfilDTO criarPerfil(PerfilDTO dto) {
-
-        // Converter o DTO para entidade perfil
+        // Converter DTO para entidade Perfil
         Perfil perfil = convertToEntity(dto);
-
-        // Verificar se há um unidade vinculado no DTO
-        if (dto.getIdUnidadeVinculo() != null && dto.getIdUnidadeVinculo() != 0) {
-            // Recuperar o unidade pelo ID
-            Unidade unidade = unidadeRepository.findById(dto.getIdUnidadeVinculo())
-                    .orElseThrow(() -> new RuntimeException("Unidade não encontrado: ID " + dto.getIdUnidadeVinculo()));
-
-            // Criar a associação perfil-unidade
-            PerfilUnidade perfilUnidade = new PerfilUnidade();
-            perfilUnidade.setPerfil(perfil);
-            perfilUnidade.setUnidade(unidade);
-
-            // Salvar a associação
-            perfilUnidadeRepository.save(perfilUnidade);
-        }
-
-        // Verificar se há nivelPermissao vinculadas no DTO
-        if (dto.getIdNivelPermissaoVinculo() != null && !dto.getIdNivelPermissaoVinculo().isEmpty()) {
-            for (Long idNivelPermissao : dto.getIdNivelPermissaoVinculo()) {
-                // Recuperar o nivelPermissao pelo ID (se necessário)
-                NivelPermissao nivelPermissao = nivelPermissaoRepository.findById(idNivelPermissao)
-                        .orElseThrow(() -> new RuntimeException("Trabalhador não encontrada: ID " + idNivelPermissao));
-
-                // Criar a associação perfil-nivelPermissao
-                PerfilNivelPermissao perfilNivelPermissao = new PerfilNivelPermissao();
-                perfilNivelPermissao.setPerfil(perfil);
-                perfilNivelPermissao.setNivelPermissao(nivelPermissao);
-
-                // Salvar a associação
-                perfilNivelPermissaoRepository.save(perfilNivelPermissao);
-            }
-        }
-
-        // Verificar se há nivelVisibilidade vinculadas no DTO
-        if (dto.getIdNivelVisibilidadeVinculo() != null && !dto.getIdNivelVisibilidadeVinculo().isEmpty()) {
-            for (Long idNivelVisibilidade : dto.getIdNivelVisibilidadeVinculo()) {
-                // Recuperar o nivelVisibilidade pelo ID (se necessário)
-                NivelVisibilidade nivelVisibilidade = nivelVisibilidadeRepository.findById(idNivelVisibilidade)
-                        .orElseThrow(() -> new RuntimeException("Trabalhador não encontrada: ID " + idNivelVisibilidade));
-
-                // Criar a associação perfil-nivelVisibilidade
-                PerfilNivelVisibilidade perfilNivelVisibilidade = new PerfilNivelVisibilidade();
-                perfilNivelVisibilidade.setPerfil(perfil);
-                perfilNivelVisibilidade.setNivelVisibilidade(nivelVisibilidade);
-
-                // Salvar a associação
-                perfilNivelVisibilidadeRepository.save(perfilNivelVisibilidade);
-            }
-        }
 
         // Salvar o perfil e obter o ID gerado
         perfil = repository.save(perfil);
 
-        //Retornar o DTO de Perfil criada
+        // Unidades vinculadas
+        if (dto.getIdUnidadeVinculo() != null && dto.getIdUnidadeVinculo() != 0) {
+            Unidade unidade = unidadeRepository.findById(dto.getIdUnidadeVinculo())
+                    .orElseThrow(() -> new RuntimeException("Unidade não encontrada: ID " + dto.getIdUnidadeVinculo()));
+
+            PerfilUnidade perfilUnidade = new PerfilUnidade();
+            perfilUnidade.setPerfil(perfil);
+            perfilUnidade.setUnidade(unidade);
+            perfilUnidadeRepository.save(perfilUnidade);
+        }
+
+        // Processar as permissões
+        if (dto.getPerfilNivelPermissaoDTO() != null) {
+            for (PerfilNivelPermissaoDTO nivelPermissaoDTO : dto.getPerfilNivelPermissaoDTO()) {
+                NivelPermissao nivelPermissao = nivelPermissaoRepository.findById(nivelPermissaoDTO.getId())
+                        .orElseThrow(() -> new RuntimeException("NivelPermissao não encontrado: ID " + nivelPermissaoDTO.getId()));
+
+                PerfilNivelPermissao perfilNivelPermissao = new PerfilNivelPermissao();
+                perfilNivelPermissao.setPerfil(perfil);
+                perfilNivelPermissao.setNivelPermissao(nivelPermissao);
+                perfilNivelPermissaoRepository.save(perfilNivelPermissao);
+
+                // Processar as visibilidades
+                if (nivelPermissaoDTO.getPerfilNivelVisibilidadeDTO() != null) {
+                    for (PerfilNivelVisibilidadeDTO visibilidadeDTO : nivelPermissaoDTO.getPerfilNivelVisibilidadeDTO()) {
+                        NivelVisibilidade nivelVisibilidade = nivelVisibilidadeRepository.findById(visibilidadeDTO.getId())
+                                .orElseThrow(() -> new RuntimeException("NivelVisibilidade não encontrado: ID " + visibilidadeDTO.getId()));
+
+                        PerfilNivelVisibilidade perfilNivelVisibilidade = new PerfilNivelVisibilidade();
+                        perfilNivelVisibilidade.setPerfil(perfil);
+                        perfilNivelVisibilidade.setNivelVisibilidade(nivelVisibilidade);
+                        perfilNivelVisibilidade.setNivelPermissao(nivelPermissao);
+                        perfilNivelVisibilidadeRepository.save(perfilNivelVisibilidade);
+                    }
+                }
+            }
+        }
+
         return convertToDTO(perfil);
     }
+
 
     // PUT: Atualizar perfil existente
     @Transactional
@@ -141,33 +131,54 @@ public class CadastroPerfilService {
         }
 
         // Atualizar associações com nivelPermissao
-        if (dto.getIdNivelPermissaoVinculo() != null) {
+        if (dto.getPerfilNivelPermissaoDTO() != null) {
             // Recuperar as associações existentes (com a chave composta idPerfil e idNivelPermissao)
             List<Long> idsNivelPermissaoVinculadas = perfilNivelPermissaoRepository.findNivelPermissaoByPerfilId(id);
 
             // Remover associações que não estão mais na lista
             List<Long> idsParaRemover = idsNivelPermissaoVinculadas.stream()
-                    .filter(idNivelPermissao -> !dto.getIdNivelPermissaoVinculo().contains(idNivelPermissao))
+                    .filter(idNivelPermissao -> !dto.getPerfilNivelPermissaoDTO().stream()
+                            .anyMatch(p -> p.getId().equals(idNivelPermissao)))
                     .toList();
             perfilNivelPermissaoRepository.deleteByPerfilIdAndNivelPermissaoIds(id, idsParaRemover);
 
             // Adicionar novas associações (para cada nivelPermissao que não existe na tabela)
-            for (Long idNivelPermissao : dto.getIdNivelPermissaoVinculo()) {
+            for (PerfilNivelPermissaoDTO perfilNivelPermissaoDTO : dto.getPerfilNivelPermissaoDTO()) {
+                Long idNivelPermissao = perfilNivelPermissaoDTO.getId();
+
                 boolean existe = perfilNivelPermissaoRepository.existsByPerfilIdAndNivelPermissaoId(id, idNivelPermissao);
                 if (!existe) {
                     NivelPermissao nivelPermissao = nivelPermissaoRepository.findById(idNivelPermissao)
-                            .orElseThrow(() -> new EntityNotFoundException("Trabalhador com ID " + idNivelPermissao + " não encontrada"));
+                            .orElseThrow(() -> new EntityNotFoundException("NivelPermissao com ID " + idNivelPermissao + " não encontrado"));
 
                     PerfilNivelPermissao novaAssociacao = new PerfilNivelPermissao();
                     novaAssociacao.setPerfil(existente);
                     novaAssociacao.setNivelPermissao(nivelPermissao);
 
-                    // Aqui, a chave primária (ID) será gerada automaticamente, já que a tabela tem uma chave composta
+                    // Salva a nova associação
                     perfilNivelPermissaoRepository.save(novaAssociacao);
+
+                    // Atualizar as visibilidades dentro de cada nível de permissão
+                    if (perfilNivelPermissaoDTO.getPerfilNivelVisibilidadeDTO() != null) {
+                        for (PerfilNivelVisibilidadeDTO visibilidadeDTO : perfilNivelPermissaoDTO.getPerfilNivelVisibilidadeDTO()) {
+                            NivelVisibilidade nivelVisibilidade = nivelVisibilidadeRepository.findById(visibilidadeDTO.getId())
+                                    .orElseThrow(() -> new EntityNotFoundException("NivelVisibilidade com ID " + visibilidadeDTO.getId() + " não encontrado"));
+
+                            // Agora, o nivelPermissao é corretamente definido no escopo
+                            PerfilNivelVisibilidade novaVisibilidade = new PerfilNivelVisibilidade();
+                            novaVisibilidade.setPerfil(existente);
+                            novaVisibilidade.setNivelPermissao(nivelPermissao); // Associando com o NivelPermissao
+                            novaVisibilidade.setNivelVisibilidade(nivelVisibilidade); // Associando com o NivelVisibilidade
+
+                            // Salva a nova associação de visibilidade
+                            perfilNivelVisibilidadeRepository.save(novaVisibilidade);
+                        }
+                    }
                 }
             }
         }
 
+        // Salvar o perfil atualizado no repositório
         Perfil perfilAtualizado = repository.save(existente);
         return convertToDTO(perfilAtualizado);
     }
@@ -190,12 +201,11 @@ public class CadastroPerfilService {
     // Método auxiliar: Converter entidade para DTO
     private PerfilDTO convertToDTO(Perfil perfil) {
         PerfilDTO dto = new PerfilDTO();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
         dto.setId(perfil.getId());
         dto.setNome(perfil.getNome());
 
-        // Extrai o ID e nome do unidade vinculado (único)
+        // Unidades vinculadas
         if (perfil.getPerfilUnidadesVinculados() != null && !perfil.getPerfilUnidadesVinculados().isEmpty()) {
             PerfilUnidade perfilUnidade = perfil.getPerfilUnidadesVinculados().get(0);
             dto.setIdUnidadeVinculo(perfilUnidade.getUnidade().getId());
@@ -209,8 +219,31 @@ public class CadastroPerfilService {
             dto.setNomeUnidadeVinculo(null);
         }
 
+        // Níveis de Permissão e seus respectivos Níveis de Visibilidade
+        List<PerfilNivelPermissaoDTO> nivelPermissaoDTOList = new ArrayList<>();
+        for (PerfilNivelPermissao perfilNivelPermissao : perfil.getPerfilNiveisPermissoesVinculadas()) {
+            PerfilNivelPermissaoDTO nivelPermissaoDTO = new PerfilNivelPermissaoDTO();
+            nivelPermissaoDTO.setId(perfilNivelPermissao.getNivelPermissao().getId());
+            nivelPermissaoDTO.setNome(perfilNivelPermissao.getNivelPermissao().getNome());
+
+            // Associar Níveis de Visibilidade para este Nível de Permissão
+            List<PerfilNivelVisibilidadeDTO> visibilidadeDTOList = new ArrayList<>();
+            for (PerfilNivelVisibilidade perfilNivelVisibilidade : perfilNivelPermissao.getPerfil().getPerfilNivelVisibilidadeVinculada()) {
+                PerfilNivelVisibilidadeDTO visibilidadeDTO = new PerfilNivelVisibilidadeDTO();
+                visibilidadeDTO.setId(perfilNivelVisibilidade.getNivelVisibilidade().getId());
+                visibilidadeDTO.setNome(perfilNivelVisibilidade.getNivelVisibilidade().getNome());
+                visibilidadeDTOList.add(visibilidadeDTO);
+            }
+
+            nivelPermissaoDTO.setPerfilNivelVisibilidadeDTO(visibilidadeDTOList);
+            nivelPermissaoDTOList.add(nivelPermissaoDTO);
+        }
+
+        dto.setPerfilNivelPermissaoDTO(nivelPermissaoDTOList);
+
         return dto;
     }
+
 
     // Método auxiliar: Converter DTO para entidade
     private Perfil convertToEntity(PerfilDTO dto) {

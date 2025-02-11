@@ -9,13 +9,10 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class PerfilDTO {
+public class PerfilNivelPermissaoDTO {
 
     private Long id;
     private String nome;
 
-    private Long idUnidadeVinculo;
-    private List<String> nomeUnidadeVinculo;
-
-    private List<PerfilNivelPermissaoDTO> perfilNivelPermissaoDTO;
+    List<PerfilNivelVisibilidadeDTO> perfilNivelVisibilidadeDTO;
 }
