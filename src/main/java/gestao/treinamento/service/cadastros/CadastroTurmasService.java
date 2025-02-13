@@ -109,7 +109,7 @@ public class CadastroTurmasService {
             for (Long idInstrutor : dto.getIdInstrutorVinculo()) {
                 // Recuperar o instrutor pelo ID (se necessário)
                 Instrutor instrutor = instrutoresRepository.findById(idInstrutor)
-                        .orElseThrow(() -> new RuntimeException("Empresa não encontrada: ID " + idInstrutor));
+                        .orElseThrow(() -> new RuntimeException("Instrutor não encontrada: ID " + idInstrutor));
 
                 // Criar a associação turma-instrutor
                 TurmaInstrutor turmaInstrutor = new TurmaInstrutor();
@@ -156,7 +156,6 @@ public class CadastroTurmasService {
         // Retornar o DTO do turma criado
         return convertToDTO(turma);
     }
-
 
     // PUT: Atualizar turma existente
     @Transactional

@@ -17,5 +17,34 @@ public class PerfilDTO {
     private Long idUnidadeVinculo;
     private List<String> nomeUnidadeVinculo;
 
-    private List<PerfilNivelPermissaoDTO> perfilNivelPermissaoDTO;
+    private List<Long> idPermissaoVinculo;
+    private List<String> nomePermissaoVinculo;
+
+    private List<Long> idPermissaoCursoVinculo;
+    private List<String> nomePermissaoCursoVinculo;
+
+    private List<Long> idPermissaoEmpresaVinculo;
+    private List<String> nomePermissaoEmpresaVinculo;
+
+    private List<Long> idPermissaoResponsavelTecnicoVinculo;
+    private List<String> nomePermissaoResponsavelTecnicoVinculo;
+
+    private List<Long> idPermissaoUnidadeVinculo;
+    private List<String> nomePermissaoUnidadeVinculo;
+
+    private List<Long> idPermissaoTrabalhadorVinculo;
+    private List<String> nomePermissaoTrabalhadorVinculo;
+
+    private List<Long> idPermissaoPalestraVinculo;
+    private List<String> nomePermissaoPalestraVinculo;
+
+    private List<Long> idPermissaoTurmaVinculo;
+    private List<String> nomePermissaoTurmaVinculo;
+
+    private List<Long> idPermissaoPerfilVinculo;
+    private List<String> nomePermissaoPerfilVinculo;
+
+    private List<Long> idPermissaoInstrutorVinculo;
+    private List<String> nomePermissaoInstrutorVinculo;
+
 }

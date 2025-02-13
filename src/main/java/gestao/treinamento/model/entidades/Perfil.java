@@ -30,5 +30,37 @@ public class Perfil {
 
     @OneToMany(mappedBy = "perfil", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
-    private List<PerfilNivelVisibilidade> perfilNivelVisibilidadeVinculada = new ArrayList<>();
+    private List<PerfilPermissaoCurso> perfilPermissaoCursos = new ArrayList<>();
+
+    @OneToMany(mappedBy = "perfil", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    private List<PerfilPermissaoEmpresa> perfilPermissaoEmpresas = new ArrayList<>();
+
+    @OneToMany(mappedBy = "perfil", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    private List<PerfilPermissaoPalestra> perfilPermissaoPalestras = new ArrayList<>();
+
+    @OneToMany(mappedBy = "perfil", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    private List<PerfilPermissaoPerfil> perfilPermissaoPerfis = new ArrayList<>();
+
+    @OneToMany(mappedBy = "perfil", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    private List<PerfilPermissaoResponsavelTecnico> perfilPermissaoResponsavelTecnicos = new ArrayList<>();
+
+    @OneToMany(mappedBy = "perfil", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    private List<PerfilPermissaoTrabalhador> perfilPermissaoTrabalhadores = new ArrayList<>();
+
+    @OneToMany(mappedBy = "perfil", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    private List<PerfilPermissaoTurma> perfilPermissaoTurmas = new ArrayList<>();
+
+    @OneToMany(mappedBy = "perfil", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    private List<PerfilPermissaoUnidade> perfilPermissaoUnidades = new ArrayList<>();
+
+    @OneToMany(mappedBy = "perfil", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    private List<PerfilPermissaoInstrutor> perfilPermissaoInstrutores = new ArrayList<>();
 }

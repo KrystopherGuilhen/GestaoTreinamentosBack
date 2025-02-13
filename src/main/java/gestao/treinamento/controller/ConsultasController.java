@@ -28,7 +28,17 @@ public class ConsultasController {
     private ConsultaResponsavelTecnicoService serviceResponsavelTecnico;
     private ConsultaUnidadesService serviceUnidade;
     private ConsultaNiveisPermissoesService serviceNivelPermissao;
-    private ConsultaNiveisVisibilidadeService serviceNivelVisibilidade;
+    private ConsultaPermissaoCursoService servicePermissaoCurso;
+    private ConsultaPermissaoEmpresaService servicePermissaoEmpresa;
+    private ConsultaPermissaoInstrutorService servicePermissaoInstrutor;
+    private ConsultaPermissaoPalestraService servicePermissaoPalestra;
+    private ConsultaPermissaoPerfilService servicePermissaoPerfil;
+    private ConsultaPermissaoResponsavelTecnicoService servicePermissaoResponsavelTecnico;
+    private ConsultaPermissaoTrabalhadorService servicePermissaoTrabalhador;
+    private ConsultaPermissaoTurmaService servicePermissaoTurma;
+    private ConsultaPermissaoUnidadeService servicePermissaoUnidade;
+
+    //private ConsultaNiveisVisibilidadeService serviceNivelVisibilidade;
 
     // GET: Buscar todas as empresas
     @GetMapping("/empresas")
@@ -115,10 +125,73 @@ public class ConsultasController {
         return ResponseEntity.ok(new ApiResponse<>(true, "Niveis de permissões consultadas com sucesso", nivelPermissao));
     }
 
-    // GET: Buscar todos os NivelVisibilidade
-    @GetMapping("/niveisVisibilidades")
-    public ResponseEntity<ApiResponse<List<NivelVisibilidadeConsultaDTO>>> consultaNivelVisibilidade() {
-        List<NivelVisibilidadeConsultaDTO> nivelVisibilidade = serviceNivelVisibilidade.consultaCadastro();
-        return ResponseEntity.ok(new ApiResponse<>(true, "Niveis de visibilidades consultadas com sucesso", nivelVisibilidade));
+    // GET: Buscar todos os PermissaoCurso
+    @GetMapping("/permissaoCurso")
+    public ResponseEntity<ApiResponse<List<PermissaoCursoConsultaDTO>>> consultaPermissaoCurso() {
+        List<PermissaoCursoConsultaDTO> permissaoCurso = servicePermissaoCurso.consultaCadastro();
+        return ResponseEntity.ok(new ApiResponse<>(true, "Permissões de Cursos consultadas com sucesso", permissaoCurso));
     }
+
+    // GET: Buscar todos os PermissaoEmpresa
+    @GetMapping("/permissaoEmpresa")
+    public ResponseEntity<ApiResponse<List<PermissaoEmpresaConsultaDTO>>> consultaPermissaoEmpresa() {
+        List<PermissaoEmpresaConsultaDTO> permissaoEmpresa = servicePermissaoEmpresa.consultaCadastro();
+        return ResponseEntity.ok(new ApiResponse<>(true, "Permissões de Empresas consultadas com sucesso", permissaoEmpresa));
+    }
+
+    // GET: Buscar todos os PermissaoInstrutor
+    @GetMapping("/permissaoInstrutor")
+    public ResponseEntity<ApiResponse<List<PermissaoInstrutorConsultaDTO>>> consultaPermissaoInstrutor() {
+        List<PermissaoInstrutorConsultaDTO> permissaoInstrutor = servicePermissaoInstrutor.consultaCadastro();
+        return ResponseEntity.ok(new ApiResponse<>(true, "Permissões de Instrutores consultadas com sucesso", permissaoInstrutor));
+    }
+
+    // GET: Buscar todos os PermissaoPalestra
+    @GetMapping("/permissaoPalestra")
+    public ResponseEntity<ApiResponse<List<PermissaoPalestraConsultaDTO>>> consultaPermissaoPalestra() {
+        List<PermissaoPalestraConsultaDTO> permissaoPalestra = servicePermissaoPalestra.consultaCadastro();
+        return ResponseEntity.ok(new ApiResponse<>(true, "Permissões de Palestras consultadas com sucesso", permissaoPalestra));
+    }
+
+    // GET: Buscar todos os PermissaoPerfil
+    @GetMapping("/permissaoPerfil")
+    public ResponseEntity<ApiResponse<List<PermissaoPerfilConsultaDTO>>> consultaPermissaoPerfil() {
+        List<PermissaoPerfilConsultaDTO> permissaoPerfil = servicePermissaoPerfil.consultaCadastro();
+        return ResponseEntity.ok(new ApiResponse<>(true, "Permissões de Perfis consultadas com sucesso", permissaoPerfil));
+    }
+
+    // GET: Buscar todos os PermissaoResponsavelTecnico
+    @GetMapping("/permissaoResponsavelTecnico")
+    public ResponseEntity<ApiResponse<List<PermissaoResponsavelTecnicoConsultaDTO>>> consultaPermissaoResponsavelTecnico() {
+        List<PermissaoResponsavelTecnicoConsultaDTO> permissaoResponsavelTecnico = servicePermissaoResponsavelTecnico.consultaCadastro();
+        return ResponseEntity.ok(new ApiResponse<>(true, "Permissões de Responsaveis Técnicos consultadas com sucesso", permissaoResponsavelTecnico));
+    }
+
+    // GET: Buscar todos os PermissaoTrabalhador
+    @GetMapping("/permissaoTrabalhador")
+    public ResponseEntity<ApiResponse<List<PermissaoTrabalhadorConsultaDTO>>> consultaPermissaoTrabalhador() {
+        List<PermissaoTrabalhadorConsultaDTO> permissaoTrabalhador = servicePermissaoTrabalhador.consultaCadastro();
+        return ResponseEntity.ok(new ApiResponse<>(true, "Permissões de Trabalhadors consultadas com sucesso", permissaoTrabalhador));
+    }
+
+    // GET: Buscar todos os PermissaoTurma
+    @GetMapping("/permissaoTurma")
+    public ResponseEntity<ApiResponse<List<PermissaoTurmaConsultaDTO>>> consultaPermissaoTurma() {
+        List<PermissaoTurmaConsultaDTO> permissaoTurma = servicePermissaoTurma.consultaCadastro();
+        return ResponseEntity.ok(new ApiResponse<>(true, "Permissões de Turmas consultadas com sucesso", permissaoTurma));
+    }
+
+    // GET: Buscar todos os PermissaoUnidade
+    @GetMapping("/permissaoUnidade")
+    public ResponseEntity<ApiResponse<List<PermissaoUnidadeConsultaDTO>>> consultaPermissaoUnidade() {
+        List<PermissaoUnidadeConsultaDTO> permissaoUnidade = servicePermissaoUnidade.consultaCadastro();
+        return ResponseEntity.ok(new ApiResponse<>(true, "Permissões de Unidades consultadas com sucesso", permissaoUnidade));
+    }
+
+//    // GET: Buscar todos os NivelVisibilidade
+//    @GetMapping("/niveisVisibilidades")
+//    public ResponseEntity<ApiResponse<List<NivelVisibilidadeConsultaDTO>>> consultaNivelVisibilidade() {
+//        List<NivelVisibilidadeConsultaDTO> nivelVisibilidade = serviceNivelVisibilidade.consultaCadastro();
+//        return ResponseEntity.ok(new ApiResponse<>(true, "Niveis de visibilidades consultadas com sucesso", nivelVisibilidade));
+//    }
 }
