@@ -2,6 +2,10 @@ package gestao.treinamento.model.entidades;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.ToString;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @Entity
@@ -31,10 +35,10 @@ public class Instrutor {
     @Column(name = "email", nullable = false, unique = true, length = 100)
     private String email;
 
-    @Column(name = "formacao", length = 100)
+    @Column(name = "formacao", length = 500)
     private String formacao;
 
-    @Column(name = "numero_registro_profissional", nullable = false)
+    @Column(name = "numero_registro_profissional")
     private Integer numeroRegistroProfissional;
 
     @Column(name = "unidade_registro_profissional", length = 50)
@@ -42,5 +46,9 @@ public class Instrutor {
 
     @Column(name = "estado_registro_profissional", length = 2)
     private String estadoRegistroProfissional;
+
+    @OneToMany(mappedBy = "empresa", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    private List<EmpresaIndustria> industriasVinculadas = new ArrayList<>();
 
 }

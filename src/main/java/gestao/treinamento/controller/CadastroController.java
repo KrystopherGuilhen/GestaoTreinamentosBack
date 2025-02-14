@@ -7,12 +7,20 @@ import gestao.treinamento.service.cadastros.*;
 import gestao.treinamento.util.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.apache.poi.ss.usermodel.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/cadastros")
@@ -82,6 +90,115 @@ public class CadastroController {
         TrabalhadorDTO trabalhadorCriado = serviceTrabalhadores.criarTrabalhador(trabalhadorDTO);
         ApiResponse<TrabalhadorDTO> response = new ApiResponse<>(true, "Trabalhador criado com sucesso", trabalhadorCriado);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    // Endpoint para criação via arquivo Excel
+    @PostMapping(value = "/trabalhadores/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<List<TrabalhadorDTO>>> uploadTrabalhadores(@RequestParam("file") MultipartFile file) {
+        // Validação do nome do arquivo: remove a extensão (caso exista) e compara com "SesiTrabalhador"
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null ||
+                !originalFilename.replaceFirst("[.][^.]+$", "").equals("SesiTrabalhador")) {
+            ApiResponse<List<TrabalhadorDTO>> response = new ApiResponse<>(
+                    false,
+                    "Nome de arquivo inválido. O arquivo deve ter o nome 'SesiTrabalhador'.",
+                    null
+            );
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+
+        List<TrabalhadorDTO> createdTrabalhadores = new ArrayList<>();
+        try {
+            Workbook workbook = WorkbookFactory.create(file.getInputStream());
+            Sheet sheet = workbook.getSheetAt(0);
+
+            // Supomos que a primeira linha é o cabeçalho, começando os dados na linha 1
+            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+                Row row = sheet.getRow(i);
+                if (row == null) continue;
+
+                TrabalhadorDTO dto = new TrabalhadorDTO();
+
+                // Ajuste os índices conforme a ordem das colunas na sua planilha.
+                dto.setNome(getCellValueAsString(row.getCell(0)));
+                dto.setCidade(getCellValueAsString(row.getCell(1)));
+                dto.setEstado(getCellValueAsString(row.getCell(2)));
+                dto.setTelefone(getCellValueAsString(row.getCell(3)));
+                dto.setCpf(getCellValueAsString(row.getCell(4)));
+                dto.setRg(getCellValueAsString(row.getCell(5)));
+                dto.setDataNascimento(getCellValueAsString(row.getCell(6)));
+                dto.setEmail(getCellValueAsString(row.getCell(7)));
+
+                // Se houver informações de empresa vinculada, supondo que:
+                // Coluna 8: IDs das empresas (separados por vírgula)
+                // Coluna 9: Nomes das empresas (separados por vírgula)
+                if (row.getLastCellNum() > 8) {
+                    String idEmpStr = getCellValueAsString(row.getCell(8));
+                    if (idEmpStr != null && !idEmpStr.isEmpty()) {
+                        List<Long> ids = Arrays.stream(idEmpStr.split(","))
+                                .map(String::trim)
+                                .map(Long::parseLong)
+                                .collect(Collectors.toList());
+                        dto.setIdEmpresaVinculo(ids);
+                    }
+                }
+                if (row.getLastCellNum() > 9) {
+                    String nomeEmpStr = getCellValueAsString(row.getCell(9));
+                    if (nomeEmpStr != null && !nomeEmpStr.isEmpty()) {
+                        List<String> nomes = Arrays.stream(nomeEmpStr.split(","))
+                                .map(String::trim)
+                                .collect(Collectors.toList());
+                        dto.setNomeEmpresaVinculo(nomes);
+                    }
+                }
+
+                // Chama o serviço para criar o trabalhador a partir do DTO
+                TrabalhadorDTO created = serviceTrabalhadores.criarTrabalhador(dto);
+                createdTrabalhadores.add(created);
+            }
+            workbook.close();
+
+            ApiResponse<List<TrabalhadorDTO>> response = new ApiResponse<>(true, "Upload e processamento realizados com sucesso", createdTrabalhadores);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            ApiResponse<List<TrabalhadorDTO>> response = new ApiResponse<>(false, "Erro ao processar o arquivo: " + e.getMessage(), null);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+
+    // Método auxiliar para converter o valor de uma célula para String
+    private String getCellValueAsString(Cell cell) {
+        if (cell == null) return "";
+        switch (cell.getCellType()) {
+            case STRING:
+                return cell.getStringCellValue();
+            case NUMERIC:
+                if (DateUtil.isCellDateFormatted(cell)) {
+                    // Formata a data para "dd/MM/yyyy" (ou outro formato desejado)
+                    return new SimpleDateFormat("dd/MM/yyyy").format(cell.getDateCellValue());
+                } else {
+                    // Se for um número inteiro, evitar notação científica
+                    double numericValue = cell.getNumericCellValue();
+                    if (numericValue == (long) numericValue) {
+                        return String.valueOf((long) numericValue); // Converte para long
+                    } else {
+                        // Para números decimais, usa formatação adequada
+                        DecimalFormat df = new DecimalFormat("#.##");
+                        return df.format(numericValue);
+                    }
+                }
+            case BOOLEAN:
+                return String.valueOf(cell.getBooleanCellValue());
+            case FORMULA:
+                try {
+                    return String.valueOf(cell.getNumericCellValue()); // Tenta obter como número
+                } catch (IllegalStateException e) {
+                    return cell.getCellFormula(); // Se não for possível, retorna a fórmula
+                }
+            default:
+                return "";
+        }
     }
 
     // PUT: Atualizar trabalhador por ID

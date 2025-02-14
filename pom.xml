@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>gestao</groupId>
 	<artifactId>treinamento</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.28</version>
 	<name>gestao-treinamentos</name>
 	<description>API que irá alimentar e registrar os cadastros necessários para realiação de Treinamentos, eventos e provas.</description>
 	<url/>
@@ -41,6 +41,12 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-ooxml</artifactId>
+			<version>5.2.3</version>
 		</dependency>
 
 		<dependency>

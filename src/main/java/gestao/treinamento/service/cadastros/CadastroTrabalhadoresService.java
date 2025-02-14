@@ -14,10 +14,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 @Service
 @AllArgsConstructor
@@ -199,14 +201,37 @@ public class CadastroTrabalhadoresService {
         trabalhador.setCpf(dto.getCpf());
         trabalhador.setRg(dto.getRg());
 
-        // Converter o formato ISO 8601 para LocalDate
-        if (dto.getDataNascimento() != null) {
-            LocalDate dataNascimento = LocalDate.parse(dto.getDataNascimento().split("T")[0]);
-            trabalhador.setDataNascimento(dataNascimento);
+        // **Chama o método de conversão de data**
+        if (dto.getDataNascimento() != null && !dto.getDataNascimento().isEmpty()) {
+            trabalhador.setDataNascimento(converterData(dto.getDataNascimento()));
         }
 
         trabalhador.setEmail(dto.getEmail());
 
         return trabalhador;
+    }
+
+    // Método para converter data em diferentes formatos
+    private LocalDate converterData(String data) {
+        if (data == null || data.isEmpty()) {
+            return null;
+        }
+
+        // Formato 1: "Sun Oct 01 00:00:00 GMT-04:00 2000"
+        DateTimeFormatter formatter1 = DateTimeFormatter.ofPattern("EEE MMM dd HH:mm:ss 'GMT'XXX yyyy", Locale.ENGLISH);
+
+        // Formato 2: "01/10/2000"
+        DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+        try {
+            return ZonedDateTime.parse(data, formatter1).toLocalDate();
+        } catch (DateTimeParseException e1) {
+            try {
+                return LocalDate.parse(data, formatter2);
+            } catch (DateTimeParseException e2) {
+                System.out.println("Erro ao converter data: " + data);
+                return null;
+            }
+        }
     }
 }
