@@ -37,8 +37,7 @@ public class ConsultasController {
     private ConsultaPermissaoTrabalhadorService servicePermissaoTrabalhador;
     private ConsultaPermissaoTurmaService servicePermissaoTurma;
     private ConsultaPermissaoUnidadeService servicePermissaoUnidade;
-
-    //private ConsultaNiveisVisibilidadeService serviceNivelVisibilidade;
+    private ConsultaPessoaService servicePessoa;
 
     // GET: Buscar todas as empresas
     @GetMapping("/empresas")
@@ -188,10 +187,10 @@ public class ConsultasController {
         return ResponseEntity.ok(new ApiResponse<>(true, "Permissões de Unidades consultadas com sucesso", permissaoUnidade));
     }
 
-//    // GET: Buscar todos os NivelVisibilidade
-//    @GetMapping("/niveisVisibilidades")
-//    public ResponseEntity<ApiResponse<List<NivelVisibilidadeConsultaDTO>>> consultaNivelVisibilidade() {
-//        List<NivelVisibilidadeConsultaDTO> nivelVisibilidade = serviceNivelVisibilidade.consultaCadastro();
-//        return ResponseEntity.ok(new ApiResponse<>(true, "Niveis de visibilidades consultadas com sucesso", nivelVisibilidade));
-//    }
+    // GET: Buscar todas as TipoPessoa
+    @GetMapping("/tipoPessoas")
+    public ResponseEntity<ApiResponse<List<PessoaConsultaDTO>>> consultaNivelVisibilidade() {
+        List<PessoaConsultaDTO> pessoa = servicePessoa.consultaCadastro();
+        return ResponseEntity.ok(new ApiResponse<>(true, "Tipo pessoas consultadas com sucesso", pessoa));
+    }
 }

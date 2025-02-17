@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
@@ -80,7 +79,6 @@ public class CadastroCursosService {
         // Retornar o DTO do Curso criado
         return convertToDTO(curso);
     }
-
 
     // PUT: Atualizar Curso existente
     @Transactional
@@ -183,7 +181,6 @@ public class CadastroCursosService {
     // Método auxiliar: Converter entidade para DTO
     private CursoDTO convertToDTO(Curso curso) {
         CursoDTO dto = new CursoDTO();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
         dto.setId(curso.getId());
         dto.setNome(curso.getNome());
@@ -213,11 +210,7 @@ public class CadastroCursosService {
         if (curso.getModalidadesVinculadas() != null && !curso.getModalidadesVinculadas().isEmpty()) {
             CursoModalidade cursoModalidade = curso.getModalidadesVinculadas().get(0);
             dto.setIdModalidadeVinculo(cursoModalidade.getModalidade().getId());
-
-            List<String> nomeModalidades = curso.getModalidadesVinculadas().stream()
-                    .map(te -> te.getModalidade().getNome())
-                    .toList();
-            dto.setNomeModalidadeVinculo(nomeModalidades);
+            dto.setNomeModalidadeVinculo(cursoModalidade.getModalidade().getNome());
         } else {
             dto.setIdModalidadeVinculo(null);
             dto.setNomeModalidadeVinculo(null);

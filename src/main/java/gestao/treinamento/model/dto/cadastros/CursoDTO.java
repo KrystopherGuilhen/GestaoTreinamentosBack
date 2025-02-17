@@ -21,7 +21,7 @@ public class CursoDTO {
 //    private Double valorContratoCrm;
 
     private Long idModalidadeVinculo;
-    private List<String> nomeModalidadeVinculo;
+    private String nomeModalidadeVinculo;
 
 //    private List<Long> idEmpresaVinculo;
 //    private List<String> nomeEmpresaVinculo;

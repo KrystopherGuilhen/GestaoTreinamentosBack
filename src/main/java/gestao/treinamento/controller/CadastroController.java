@@ -42,23 +42,23 @@ public class CadastroController {
 
     // GET: Buscar todos os instrutores
     @GetMapping("/instrutores")
-    public ResponseEntity<ApiResponse<List<Instrutor>>> cadastroInstrutor() {
-        List<Instrutor> instrutores = serviceInstrutores.consultaCadastro();
+    public ResponseEntity<ApiResponse<List<InstrutorDTO>>> cadastroInstrutor() {
+        List<InstrutorDTO> instrutores = serviceInstrutores.consultaCadastro();
         return ResponseEntity.ok(new ApiResponse<>(true, "Instrutores recuperados com sucesso", instrutores));
     }
 
     // POST: Criar um novo instrutor
     @PostMapping("/instrutores")
-    public ResponseEntity<ApiResponse<Instrutor>> criarInstrutor(@RequestBody Instrutor instrutor) {
-        Instrutor novoInstrutor = serviceInstrutores.salvarInstrutor(instrutor);
+    public ResponseEntity<ApiResponse<InstrutorDTO>> criarInstrutor(@RequestBody @Valid InstrutorDTO dto) {
+        InstrutorDTO novoInstrutor = serviceInstrutores.criarInstrutor(dto);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new ApiResponse<>(true, "Instrutor criado com sucesso", novoInstrutor));
     }
 
     // PUT: Atualizar um instrutor existente
     @PutMapping("/instrutores/{id}")
-    public ResponseEntity<ApiResponse<Instrutor>> atualizarInstrutor(@PathVariable Long id, @RequestBody Instrutor instrutor) {
-        Instrutor instrutorAtualizado = serviceInstrutores.atualizarInstrutor(id, instrutor);
+    public ResponseEntity<ApiResponse<InstrutorDTO>> atualizarInstrutor(@PathVariable Long id, @RequestBody InstrutorDTO instrutorDTO) {
+        InstrutorDTO instrutorAtualizado = serviceInstrutores.atualizarInstrutor(id, instrutorDTO);
         return ResponseEntity.ok(new ApiResponse<>(true, "Instrutor atualizado com sucesso", instrutorAtualizado));
     }
 

@@ -14,6 +14,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 
@@ -35,7 +36,15 @@ public class CadastroEmpresasService {
 
     @Transactional
     public EmpresaDTO criarEmpresa(EmpresaDTO dto) {
-        // Converter o DTO para entidade Curso
+        // Validação de CPF/CNPJ
+        if (StringUtils.hasText(dto.getCpf())) {
+            validateUniqueField("cpf", dto.getCpf());
+        }
+        if (StringUtils.hasText(dto.getCnpj())) {
+            validateUniqueField("cnpj", dto.getCnpj());
+        }
+
+        // Converter o DTO para entidade Empresa
         Empresa empresa = convertToEntity(dto);
 
         // Salvar a Empresa e obter o ID gerado
@@ -196,5 +205,13 @@ public class CadastroEmpresasService {
         empresa.setRelacaoEspacoConfinado(dto.getRelacaoEspacoConfinado());
 
         return empresa;
+    }
+
+    private void validateUniqueField(String fieldName, String value) {
+        if (repository.existsByField(fieldName, value)) {
+            throw new DataIntegrityViolationException(
+                    String.format("Já existe uma empresa com %s = '%s'", fieldName, value)
+            );
+        }
     }
 }

@@ -29,14 +29,24 @@ public class Instrutor {
     @Column(name = "telefone", nullable = false, length = 20)
     private String telefone;
 
-    @Column(name = "cpf", nullable = false, unique = true, length = 11)
+    @Column(name = "cpf", unique = true, nullable = true, length = 11)
     private String cpf;
+
+    @Column(name = "cnpj", unique = true, nullable = true, length = 18)
+    private String cnpj;
 
     @Column(name = "email", nullable = false, unique = true, length = 100)
     private String email;
 
-    @Column(name = "formacao", length = 500)
+    @Lob
+    @Column(name = "certificado")
+    private byte[] certificado;
+
+    @Column(name = "formacao")
     private String formacao;
+
+    @Column(name = "experiencia", length = 500)
+    private String experiencia;
 
     @Column(name = "numero_registro_profissional")
     private Integer numeroRegistroProfissional;
@@ -47,8 +57,8 @@ public class Instrutor {
     @Column(name = "estado_registro_profissional", length = 2)
     private String estadoRegistroProfissional;
 
-    @OneToMany(mappedBy = "empresa", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "instrutor", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
-    private List<EmpresaIndustria> industriasVinculadas = new ArrayList<>();
+    private List<InstrutorPessoa> instrutorPessoaVinculado = new ArrayList<>();
 
 }

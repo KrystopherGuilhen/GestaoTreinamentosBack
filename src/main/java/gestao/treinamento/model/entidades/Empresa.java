@@ -28,11 +28,11 @@ public class Empresa {
     @Column(name = "telefone", nullable = false, length = 20)
     private String telefone;
 
-    @Column(name = "cnpj", unique = true, length = 18)
-    private String cnpj;
-
-    @Column(name = "cpf", unique = true, length = 11)
+    @Column(name = "cpf", unique = true, nullable = true, length = 11)
     private String cpf;
+
+    @Column(name = "cnpj", unique = true, nullable = true, length = 18)
+    private String cnpj;
 
     @Column(name = "nome_responsavel_empresa", nullable = false, length = 150)
     private String nomeResponsavelEmpresa;
