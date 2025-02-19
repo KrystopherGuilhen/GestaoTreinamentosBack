@@ -57,6 +57,14 @@ public class Turma {
     @ToString.Exclude
     private List<TurmaCurso> turmaCursosVinculados = new ArrayList<>();
 
+    @OneToMany(mappedBy = "turma", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    private List<TurmaUnidade> turmaUnidadesVinculadas = new ArrayList<>();
+
+    @OneToMany(mappedBy = "turma", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    private List<TurmaInstrutorFormacao> turmaInstrutorFormacaosVinculados = new ArrayList<>();
+
     @Column(name = "observacao_nr", length = 450)
     private String observacaoNr;
 

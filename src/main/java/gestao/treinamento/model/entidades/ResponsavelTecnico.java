@@ -2,6 +2,10 @@ package gestao.treinamento.model.entidades;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.ToString;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @Entity
@@ -21,4 +25,8 @@ public class ResponsavelTecnico {
 
     @Column(name = "numero_conselho")
     private Integer numeroConselho;
+
+    @OneToMany(mappedBy = "responsavelTecnico", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    private List<ResponsavelTecnicoAssinatura> assinatura = new ArrayList<>();
 }

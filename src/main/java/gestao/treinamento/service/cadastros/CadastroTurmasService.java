@@ -40,6 +40,12 @@ public class CadastroTurmasService {
     private final CadastroCursosRepository cursosRepository;
     private final CadastroTurmaCursoRepository turmaCursoRepository;
 
+    private final CadastroUnidadesRepository unidadeRepository;
+    private final CadastroTurmaUnidadeRepository turmaUnidadeRepository;
+
+    private final CadastroInstrutorFormacaoRepository instrutorFormacaoRepository;
+    private final CadastroTurmaInstrutorFormacaoRepository turmaInstrutorFormacaoRepository;
+
 
     // GET: Buscar todos os turmas
     public List<TurmaDTO> consultaCadastro() {
@@ -104,7 +110,7 @@ public class CadastroTurmasService {
             }
         }
 
-        // Verificar se há empresas instrutor no DTO
+        // Verificar se há instrutores no DTO
         if (dto.getIdInstrutorVinculo() != null && !dto.getIdInstrutorVinculo().isEmpty()) {
             for (Long idInstrutor : dto.getIdInstrutorVinculo()) {
                 // Recuperar o instrutor pelo ID (se necessário)
@@ -151,6 +157,38 @@ public class CadastroTurmasService {
 
             // Salvar a associação
             turmaCursoRepository.save(turmaCurso);
+        }
+
+        // Verificar se há uma unidade vinculado no DTO
+        if (dto.getIdUnidadeVinculo() != null) {
+            // Recuperar o unidade pelo ID
+            Unidade unidade = unidadeRepository.findById(dto.getIdUnidadeVinculo())
+                    .orElseThrow(() -> new RuntimeException("Unidade não encontrada: ID " + dto.getIdUnidadeVinculo()));
+
+            // Criar a associação turma-unidade
+            TurmaUnidade turmaUnidade = new TurmaUnidade();
+            turmaUnidade.setTurma(turma);
+            turmaUnidade.setUnidade(unidade);
+
+            // Salvar a associação
+            turmaUnidadeRepository.save(turmaUnidade);
+        }
+
+        // Verificar se há um instrutorFormacao vinculado no DTO
+        if (dto.getIdInstrutorFormacaoVinculo() != null && !dto.getIdInstrutorFormacaoVinculo().isEmpty()) {
+            for (Long idInstrutorFormacao : dto.getIdInstrutorFormacaoVinculo()) {
+                // Recuperar o instrutorFormacao pelo ID (se necessário)
+                InstrutorFormacao instrutorFormacao = instrutorFormacaoRepository.findById(idInstrutorFormacao)
+                        .orElseThrow(() -> new RuntimeException("Formação do Instrutor não encontrada: ID " + idInstrutorFormacao));
+
+                // Criar a associação turma-instrutor-formacao
+                TurmaInstrutorFormacao turmaInstrutorFormacao = new TurmaInstrutorFormacao();
+                turmaInstrutorFormacao.setTurma(turma);
+                turmaInstrutorFormacao.setInstrutorFormacao(instrutorFormacao);
+
+                // Salvar a associação
+                turmaInstrutorFormacaoRepository.save(turmaInstrutorFormacao);
+            }
         }
 
         // Retornar o DTO do turma criado
@@ -391,6 +429,67 @@ public class CadastroTurmasService {
             }
         }
 
+        // Atualizar associações com unidade
+        if (dto.getIdUnidadeVinculo() != null) {
+            // Recuperar as associações existentes (com a chave composta idTurma e idUnidade)
+            List<Long> idsUnidadesVinculadas = turmaUnidadeRepository.findUnidadeByTurmaId(id);
+
+            // Verificar se a unidade atual está na lista de associações
+            Long idUnidadeVinculo = dto.getIdUnidadeVinculo();
+
+            // Remover associações que não correspondem ao nova unidade vinculada
+            List<Long> idsParaRemover = idsUnidadesVinculadas.stream()
+                    .filter(idUnidade -> !idUnidade.equals(idUnidadeVinculo))
+                    .toList();
+            if (!idsParaRemover.isEmpty()) {
+                turmaUnidadeRepository.deleteByTurmaIdAndUnidadeIds(id, idsParaRemover);
+            }
+
+            // Verificar se a unidade já está associado
+            boolean existe = turmaUnidadeRepository.existsByTurmaIdAndUnidadeId(id, idUnidadeVinculo);
+            if (!existe) {
+                // Recuperar o curso pelo ID
+                Unidade unidade = unidadeRepository.findById(idUnidadeVinculo)
+                        .orElseThrow(() -> new EntityNotFoundException("Curso com ID " + idUnidadeVinculo + " não encontrado"));
+
+                // Criar a nova associação
+                TurmaUnidade novaAssociacao = new TurmaUnidade();
+                novaAssociacao.setTurma(existente);
+                novaAssociacao.setUnidade(unidade);
+
+                // Salvar a nova associação
+                turmaUnidadeRepository.save(novaAssociacao);
+            }
+        }
+
+        // Atualizar associações com instrutorFormacao
+        if (dto.getIdInstrutorFormacaoVinculo() != null) {
+            // Recuperar as associações existentes (com a chave composta idTurma e idInstrutorFormacao)
+            List<Long> idsInstrutorFormacaoesVinculadas = turmaInstrutorFormacaoRepository.findInstrutorFormacaoByTurmaId(id);
+
+            // Remover associações que não estão mais na lista
+            List<Long> idsParaRemover = idsInstrutorFormacaoesVinculadas.stream()
+                    .filter(idInstrutorFormacao -> !dto.getIdInstrutorFormacaoVinculo().contains(idInstrutorFormacao))
+                    .toList();
+            turmaInstrutorFormacaoRepository.deleteByTurmaIdAndInstrutorFormacaoIds(id, idsParaRemover);
+
+            // Adicionar novas associações (para cada InstrutorFormacao que não existe na tabela)
+            for (Long idInstrutorFormacao : dto.getIdTrabalhadorVinculo()) {
+                boolean existe = turmaInstrutorFormacaoRepository.existsByTurmaIdAndInstrutorFormacaoId(id, idInstrutorFormacao);
+                if (!existe) {
+                    InstrutorFormacao InstrutorFormacao = instrutorFormacaoRepository.findById(idInstrutorFormacao)
+                            .orElseThrow(() -> new EntityNotFoundException("Formação do Instrutor com ID " + idInstrutorFormacao + " não encontrado"));
+
+                    TurmaInstrutorFormacao novaAssociacao = new TurmaInstrutorFormacao();
+                    novaAssociacao.setTurma(existente);
+                    novaAssociacao.setInstrutorFormacao(InstrutorFormacao);
+
+                    // Aqui, a chave primária (ID) será gerada automaticamente, já que a tabela tem uma chave composta
+                    turmaInstrutorFormacaoRepository.save(novaAssociacao);
+                }
+            }
+        }
+
         existente.setObservacaoNr(dto.getObservacaoNr());
 
         Turma turmaAtualizado = repository.save(existente);
@@ -436,35 +535,27 @@ public class CadastroTurmasService {
         dto.setValorContratoCrm(turma.getValorContratoCrm());
         dto.setNumeroContratoCrm(turma.getNumeroContratoCrm());
 
-        // Extrai o ID e nome do evento vinculado (único)
+        // Extrai o ID e nome do Evento vinculado (única)
         if (turma.getTurmaEventosVinculados() != null && !turma.getTurmaEventosVinculados().isEmpty()) {
             TurmaEvento turmaEvento = turma.getTurmaEventosVinculados().get(0);
             dto.setIdEventoVinculo(turmaEvento.getEvento().getId());
-
-            List<String> nomeEvento = turma.getTurmaEventosVinculados().stream()
-                    .map(te -> te.getEvento().getNome())
-                    .toList();
-            dto.setNomeEventoVinculo(nomeEvento);
+            dto.setNomeEventoVinculo(turmaEvento.getEvento().getNome());
         } else {
             dto.setIdEventoVinculo(null);
             dto.setNomeEventoVinculo(null);
         }
 
-        // Extrai o ID e nome da modalidade vinculada (única)
+        // Extrai o ID e nome do Modalidade vinculado (única)
         if (turma.getTurmaModalidadesVinculadas() != null && !turma.getTurmaModalidadesVinculadas().isEmpty()) {
             TurmaModalidade turmaModalidade = turma.getTurmaModalidadesVinculadas().get(0);
             dto.setIdModalidadeVinculo(turmaModalidade.getModalidade().getId());
-
-            List<String> nomeModalidades = turma.getTurmaModalidadesVinculadas().stream()
-                    .map(te -> te.getModalidade().getNome())
-                    .toList();
-            dto.setNomeModalidadeVinculo(nomeModalidades);
+            dto.setNomeModalidadeVinculo(turmaModalidade.getModalidade().getNome());
         } else {
             dto.setIdModalidadeVinculo(null);
             dto.setNomeModalidadeVinculo(null);
         }
 
-        // Extrai os IDs e nomes dos trabalhadores vinculados
+        // Extrai os IDs e nomes dos trabalhadores vinculados (multiplos)
         List<Long> idTrabalhadores = turma.getTurmaTrabalhadoresVinculados() != null
                 ? turma.getTurmaTrabalhadoresVinculados().stream()
                 .map(te -> te.getTrabalhador().getId())
@@ -477,7 +568,7 @@ public class CadastroTurmasService {
                 .toList();
         dto.setNomeTrabalhadorVinculo(nomesTrabalhadores);
 
-        // Extrai o ID e nome do instrutor vinculado
+        // Extrai o ID e nome do instrutor vinculado (multiplos)
         List<Long> idInstrutor = turma.getTurmaInstrutoresVinculados() != null
                 ? turma.getTurmaInstrutoresVinculados().stream()
                 .map(te -> te.getInstrutor().getId())
@@ -490,21 +581,7 @@ public class CadastroTurmasService {
                 .toList();
         dto.setNomeInstrutorVinculo(nomeInstrutor);
 
-//        // Extrai o ID e nome do instrutor vinculado (único)
-//        if (turma.getTurmaInstrutoresVinculados() != null && !turma.getTurmaInstrutoresVinculados().isEmpty()) {
-//            TurmaInstrutor turmaInstrutor = turma.getTurmaInstrutoresVinculados().get(0);
-//            dto.setIdInstrutorVinculo(turmaInstrutor.getInstrutor().getId());
-//
-//            List<String> nomeInstrutor = turma.getTurmaInstrutoresVinculados().stream()
-//                    .map(te -> te.getInstrutor().getNome())
-//                    .toList();
-//            dto.setNomeInstrutorVinculo(nomeInstrutor);
-//        } else {
-//            dto.setIdInstrutorVinculo(null);
-//            dto.setNomeInstrutorVinculo(null);
-//        }
-
-        // Extrai os IDs e nomes das empresas vinculados
+        // Extrai os IDs e nomes das empresas vinculados (multiplo)
         List<Long> idEmpresas = turma.getTurmaEmpresasVinculadas() != null
                 ? turma.getTurmaEmpresasVinculadas().stream()
                 .map(te -> te.getEmpresa().getId())
@@ -517,20 +594,38 @@ public class CadastroTurmasService {
                 .toList();
         dto.setNomeEmpresaVinculo(nomesEmpresas);
 
-        // Extrai o ID e nome do curso vinculado (único)
+        // Extrai o ID e nome do Curso vinculado (unico)
         if (turma.getTurmaCursosVinculados() != null && !turma.getTurmaCursosVinculados().isEmpty()) {
             TurmaCurso turmaCurso = turma.getTurmaCursosVinculados().get(0);
             dto.setIdCursoVinculo(turmaCurso.getCurso().getId());
-
-            List<String> nomeCurso = turma.getTurmaCursosVinculados().stream()
-                    .map(te -> te.getCurso().getNome())
-                    .toList();
-            dto.setNomeCursoVinculo(nomeCurso);
+            dto.setNomeCursoVinculo(turmaCurso.getCurso().getNome());
         } else {
             dto.setIdCursoVinculo(null);
             dto.setNomeCursoVinculo(null);
         }
 
+        // Extrai o ID e nome do Unidade vinculado (única)
+        if (turma.getTurmaUnidadesVinculadas() != null && !turma.getTurmaUnidadesVinculadas().isEmpty()) {
+            TurmaUnidade turmaUnidade = turma.getTurmaUnidadesVinculadas().get(0);
+            dto.setIdUnidadeVinculo(turmaUnidade.getUnidade().getId());
+            dto.setNomeUnidadeVinculo(turmaUnidade.getUnidade().getNome());
+        } else {
+            dto.setIdUnidadeVinculo(null);
+            dto.setNomeUnidadeVinculo(null);
+        }
+
+        // Extrai os IDs e nomes das InstrutorFormacao vinculados (multiplo)
+        List<Long> idInstrutorFormacao = turma.getTurmaInstrutorFormacaosVinculados() != null
+                ? turma.getTurmaInstrutorFormacaosVinculados().stream()
+                .map(te -> te.getInstrutorFormacao().getId())
+                .toList()
+                : new ArrayList<>();
+        dto.setIdInstrutorFormacaoVinculo(idInstrutorFormacao);
+
+        List<String> nomesInstrutorFormacao = turma.getTurmaInstrutorFormacaosVinculados().stream()
+                .map(te -> te.getInstrutorFormacao().getFormacao())
+                .toList();
+        dto.setNomeInstrutorFormacaoVinculo(nomesInstrutorFormacao);
 
         return dto;
     }

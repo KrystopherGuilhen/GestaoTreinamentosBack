@@ -19,8 +19,8 @@ public class Unidade {
     @Column(name = "nome", nullable = false, length = 150)
     private String nome;
 
-//    @Column(name = "gerente_responsavel", nullable = false, length = 100)
-//    private String gerenteResponsavel;
+    @Column(name = "gerente_responsavel", nullable = false, length = 100)
+    private String gerenteResponsavel;
 //
 //    @Column(name = "responsavel_tecnico", nullable = false, length = 100)
 //    private String responsavelTecnico;
@@ -32,4 +32,8 @@ public class Unidade {
     @OneToMany(mappedBy = "unidade", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
     private List<UnidadeResponsavelTecnico> unidadeResponsavelTecnicosVinculados = new ArrayList<>();
+
+    @OneToMany(mappedBy = "unidade", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    private List<UnidadeAssinatura> assinatura = new ArrayList<>();
 }

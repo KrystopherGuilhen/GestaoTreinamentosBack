@@ -19,10 +19,13 @@ public class TurmaDTO {
     private Integer numeroContratoCrm;
 
     private Long idEventoVinculo;
-    private List<String> nomeEventoVinculo;
+    private String nomeEventoVinculo;
 
     private Long idModalidadeVinculo;
-    private List<String> nomeModalidadeVinculo;
+    private String nomeModalidadeVinculo;
+
+    private Long idUnidadeVinculo;
+    private String nomeUnidadeVinculo;
 
     private List<Long> idTrabalhadorVinculo;
     private List<String> nomeTrabalhadorVinculo;
@@ -30,11 +33,14 @@ public class TurmaDTO {
     private List<Long> idInstrutorVinculo;
     private List<String> nomeInstrutorVinculo;
 
+    private List<Long> idInstrutorFormacaoVinculo;
+    private List<String> nomeInstrutorFormacaoVinculo;
+
     private List<Long> idEmpresaVinculo;
     private List<String> nomeEmpresaVinculo;
 
     private Long idCursoVinculo;
-    private List<String> nomeCursoVinculo;
+    private String nomeCursoVinculo;
 
     private String observacaoNr;
 }

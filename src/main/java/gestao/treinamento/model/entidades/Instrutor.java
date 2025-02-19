@@ -38,12 +38,16 @@ public class Instrutor {
     @Column(name = "email", nullable = false, unique = true, length = 100)
     private String email;
 
-    @Lob
-    @Column(name = "certificado")
-    private byte[] certificado;
+    @OneToMany(mappedBy = "instrutor", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    private List<InstrutorCertificados> certificados = new ArrayList<>();
 
-    @Column(name = "formacao")
-    private String formacao;
+    @Column(name = "possui_multiplas_formacoes")
+    private boolean possuiMultiplasFormacoes;
+
+    @OneToMany(mappedBy = "instrutor", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    private List<InstrutorFormacao> formacoes = new ArrayList<>();
 
     @Column(name = "experiencia", length = 500)
     private String experiencia;
@@ -56,6 +60,14 @@ public class Instrutor {
 
     @Column(name = "estado_registro_profissional", length = 2)
     private String estadoRegistroProfissional;
+
+//    @Lob
+//    @Column(name = "assinatura", columnDefinition = "LONGBLOB")
+//    private byte[] assinatura;
+
+    @OneToMany(mappedBy = "instrutor", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    private List<InstrutorAssinatura> assinatura = new ArrayList<>();
 
     @OneToMany(mappedBy = "instrutor", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude

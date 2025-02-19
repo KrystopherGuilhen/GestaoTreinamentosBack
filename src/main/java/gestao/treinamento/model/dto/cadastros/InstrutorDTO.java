@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -17,8 +19,9 @@ public class InstrutorDTO {
     private String cpf;
     private String cnpj;
     private String email;
-    private byte[] certificado;
-    private String formacao;
+    private List<InstrutorCertificadosDTO> certificados;
+    private boolean possuiMultiplasFormacoes;
+    private List<String> formacoes;
     private String experiencia;
     private Integer numeroRegistroProfissional;
     private String unidadeRegistroProfissional;
@@ -26,4 +29,7 @@ public class InstrutorDTO {
 
     private Long idTipoPessoaVinculado;
     private String nomeTipoPessoaVinculado;
+
+    //crie o modelo de importação unica e ajuste aqui para o byte[] para poder salvar diretamente na tabela de instrutor.
+    private List<InstrutorAssinaturaDTO> assinatura;
 }

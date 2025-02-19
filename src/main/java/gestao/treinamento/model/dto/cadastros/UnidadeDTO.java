@@ -13,6 +13,7 @@ public class UnidadeDTO {
 
     private Long id;
     private String nome;
+    private String gerenteResponsavel;
 
     private Long idResponsavelTecnicoVinculo;
     private List<String> nomeResponsavelTecnicoVinculo;
@@ -20,4 +21,5 @@ public class UnidadeDTO {
     private Long idPerfilVinculo;
     private List<String> nomePerfilVinculo;
 
+    private List<UnidadeAssinaturaDTO> assinatura;
 }

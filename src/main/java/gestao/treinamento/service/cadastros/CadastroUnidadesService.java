@@ -1,6 +1,7 @@
 package gestao.treinamento.service.cadastros;
 
 import gestao.treinamento.exception.ResourceNotFoundException;
+import gestao.treinamento.model.dto.cadastros.UnidadeAssinaturaDTO;
 import gestao.treinamento.model.dto.cadastros.UnidadeDTO;
 import gestao.treinamento.model.entidades.*;
 import gestao.treinamento.repository.cadastros.*;
@@ -11,7 +12,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.format.DateTimeFormatter;
+import java.util.Base64;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -19,6 +22,7 @@ public class CadastroUnidadesService {
 
     @Autowired
     private final CadastroUnidadesRepository repository;
+    private final CadastroUnidadeAssinaturaRepository unidadeAssinaturaRepository;
 
     private final CadastroResponsavelTecnicoRepository responsavelTecnicoRepository;
     private final CadastroUnidadeResponsavelTecnicoRepository unidadeResponsavelTecnicoRepository;
@@ -85,7 +89,7 @@ public class CadastroUnidadesService {
                 .orElseThrow(() -> new ResourceNotFoundException("Unidade não encontrado com ID: " + id));
 
         existente.setNome(dto.getNome());
-//        existente.setGerenteResponsavel(unidade.getGerenteResponsavel());
+        existente.setGerenteResponsavel(dto.getGerenteResponsavel());
 //        existente.setResponsavelTecnico(unidade.getResponsavelTecnico());
 
         // Atualizar associações com responsavelTecnico
@@ -154,6 +158,35 @@ public class CadastroUnidadesService {
             }
         }
 
+        // 1. Atualizar assinatura (estratégia de substituição completa)
+        if (dto.getAssinatura() != null) {
+            // Remover assinatura existentes
+            unidadeAssinaturaRepository.deleteByUnidadeId(id); // Método customizado no repository
+
+            // Adicionar novas assinaturas
+            List<UnidadeAssinatura> novasAssinaturas = dto.getAssinatura().stream()
+                    .map(assinaturaDTO -> {
+                        UnidadeAssinatura assinatura = new UnidadeAssinatura();
+                        assinatura.setName(assinaturaDTO.getName());
+                        assinatura.setMimeType(assinaturaDTO.getMimeType());
+                        assinatura.setType(assinaturaDTO.getType());
+                        assinatura.setSize(assinaturaDTO.getSize());
+
+                        // Decodificar base64
+                        String base64Data = assinaturaDTO.getBase64();
+                        if (base64Data.contains(",")) {
+                            base64Data = base64Data.split(",", 2)[1];
+                        }
+                        assinatura.setDados(Base64.getDecoder().decode(base64Data));
+
+                        assinatura.setUnidade(existente);
+                        return assinatura;
+                    })
+                    .collect(Collectors.toList());
+
+            unidadeAssinaturaRepository.saveAll(novasAssinaturas);
+        }
+
         Unidade unidadeAtualizado = repository.save(existente);
         return convertToDTO(unidadeAtualizado);
     }
@@ -180,6 +213,7 @@ public class CadastroUnidadesService {
 
         dto.setId(unidade.getId());
         dto.setNome(unidade.getNome());
+        dto.setGerenteResponsavel(unidade.getGerenteResponsavel());
 
         // Extrai o ID e nome do responsavelTecnico vinculado (único)
         if (unidade.getUnidadeResponsavelTecnicosVinculados() != null && !unidade.getUnidadeResponsavelTecnicosVinculados().isEmpty()) {
@@ -195,6 +229,31 @@ public class CadastroUnidadesService {
             dto.setNomeResponsavelTecnicoVinculo(null);
         }
 
+        // Converter assinatura para DTOs
+        if (unidade.getAssinatura() != null) {
+            List<UnidadeAssinaturaDTO> assinaturaDTO = unidade.getAssinatura().stream()
+                    .map(assinatura -> {
+                        UnidadeAssinaturaDTO assDTO = new UnidadeAssinaturaDTO();
+
+                        // Mapear campos adicionais
+                        assDTO.setName(assinatura.getName());
+                        assDTO.setMimeType(assinatura.getMimeType());
+                        assDTO.setType(assinatura.getType());
+                        assDTO.setSize(assinatura.getSize());
+
+                        // Gerar Data URI para o front
+                        assDTO.setBase64("data:" + assinatura.getMimeType() + ";base64," +
+                                Base64.getEncoder().encodeToString(assinatura.getDados()));
+
+                        // ObjectURL geralmente não é persistido, mas se necessário:
+                        assDTO.setObjectURL(assinatura.getObjectURL());
+
+                        return assDTO;
+                    })
+                    .collect(Collectors.toList());
+            dto.setAssinatura(assinaturaDTO);
+        }
+
         return dto;
     }
 
@@ -202,6 +261,29 @@ public class CadastroUnidadesService {
     private Unidade convertToEntity(UnidadeDTO dto) {
         Unidade unidade = new Unidade();
         unidade.setNome(dto.getNome());
+        unidade.setGerenteResponsavel(dto.getGerenteResponsavel());
+
+        // Processar assinatura (DTO → Entidade)
+        if (dto.getAssinatura() != null) {
+            List<UnidadeAssinatura> assinaturaEntidade = dto.getAssinatura().stream()
+                    .map(assinaturaDTO -> {
+                        UnidadeAssinatura assinatura = new UnidadeAssinatura();
+
+                        // Mapear campos diretos
+                        assinatura.setName(assinaturaDTO.getName());
+                        assinatura.setMimeType(assinaturaDTO.getMimeType());
+                        assinatura.setType(assinaturaDTO.getType());
+                        assinatura.setSize(assinaturaDTO.getSize());
+
+                        // Decodificar Base64 (já está pronto para byte[])
+                        assinatura.setDados(Base64.getDecoder().decode(assinaturaDTO.getBase64()));
+
+                        assinatura.setUnidade(unidade);
+                        return assinatura;
+                    })
+                    .collect(Collectors.toList());
+            unidade.setAssinatura(assinaturaEntidade);
+        }
 
         return unidade;
     }

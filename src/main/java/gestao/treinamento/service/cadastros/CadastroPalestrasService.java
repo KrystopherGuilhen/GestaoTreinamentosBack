@@ -2,7 +2,7 @@ package gestao.treinamento.service.cadastros;
 
 import gestao.treinamento.model.dto.cadastros.PalestraDTO;
 import gestao.treinamento.model.entidades.Palestra;
-import gestao.treinamento.repository.cadastros.CadastroPalestraEmpresaRepository;
+//import gestao.treinamento.repository.cadastros.CadastroPalestraEmpresaRepository;
 import gestao.treinamento.repository.cadastros.CadastroPalestrasRepository;
 import gestao.treinamento.repository.cadastros.CadastroEmpresasRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -21,7 +21,7 @@ public class CadastroPalestrasService {
     @Autowired
     private final CadastroPalestrasRepository repository;
     private final CadastroEmpresasRepository empresaRepository;
-    private final CadastroPalestraEmpresaRepository palestraEmpresaRepository;
+   // private final CadastroPalestraEmpresaRepository palestraEmpresaRepository;
 
     // GET: Buscar todos os palestras
     public List<PalestraDTO> consultaCadastro() {

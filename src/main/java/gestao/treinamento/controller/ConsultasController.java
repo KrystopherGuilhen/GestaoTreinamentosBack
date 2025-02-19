@@ -38,6 +38,7 @@ public class ConsultasController {
     private ConsultaPermissaoTurmaService servicePermissaoTurma;
     private ConsultaPermissaoUnidadeService servicePermissaoUnidade;
     private ConsultaPessoaService servicePessoa;
+    private ConsultaInstrutorFormacaoService serviceInstrutorFormacao;
 
     // GET: Buscar todas as empresas
     @GetMapping("/empresas")
@@ -189,8 +190,16 @@ public class ConsultasController {
 
     // GET: Buscar todas as TipoPessoa
     @GetMapping("/tipoPessoas")
-    public ResponseEntity<ApiResponse<List<PessoaConsultaDTO>>> consultaNivelVisibilidade() {
+    public ResponseEntity<ApiResponse<List<PessoaConsultaDTO>>> consultaTipoPessoa() {
         List<PessoaConsultaDTO> pessoa = servicePessoa.consultaCadastro();
         return ResponseEntity.ok(new ApiResponse<>(true, "Tipo pessoas consultadas com sucesso", pessoa));
+    }
+
+    // GET: Buscar as formações de um instrutor específico
+    @GetMapping("/instrutorFormacoes")
+    public ResponseEntity<ApiResponse<List<InstrutorFormacaoConsultaDTO>>> consultaInstrutorFormacao(
+            @RequestParam Long instrutorId) {
+        List<InstrutorFormacaoConsultaDTO> formacoes = serviceInstrutorFormacao.consultaPorInstrutor(instrutorId);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Formações do instrutor consultadas com sucesso", formacoes));
     }
 }
