@@ -7,8 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class TurmaConsultaDTO {
+public class InstrutorFormacaoConsultaListaDTO {
 
-    private Long id;
-    private String nome;
+    private Long formacaoId;       // ID da formação
+    private String formacaoNome;   // Nome da formação
 }

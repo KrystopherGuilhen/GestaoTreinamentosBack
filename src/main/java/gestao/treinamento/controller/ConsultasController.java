@@ -90,13 +90,6 @@ public class ConsultasController {
         return ResponseEntity.ok(new ApiResponse<>(true, "Cursos consultados com sucesso", cursos));
     }
 
-    // GET: Buscar todos as turmas
-    @GetMapping("/turmas")
-    public ResponseEntity<ApiResponse<List<TurmaConsultaDTO>>> consultaTurma() {
-        List<TurmaConsultaDTO> turmas = serviceTurmas.consultaCadastro();
-        return ResponseEntity.ok(new ApiResponse<>(true, "Turmas consultadas com sucesso", turmas));
-    }
-
     // GET: Buscar todos as industrias
     @GetMapping("/industrias")
     public ResponseEntity<ApiResponse<List<IndustriaConsultaDTO>>> consultaIndustria() {
@@ -197,9 +190,19 @@ public class ConsultasController {
 
     // GET: Buscar as formações de um instrutor específico
     @GetMapping("/instrutorFormacoes")
-    public ResponseEntity<ApiResponse<List<InstrutorFormacaoConsultaDTO>>> consultaInstrutorFormacao(
-            @RequestParam Long instrutorId) {
-        List<InstrutorFormacaoConsultaDTO> formacoes = serviceInstrutorFormacao.consultaPorInstrutor(instrutorId);
-        return ResponseEntity.ok(new ApiResponse<>(true, "Formações do instrutor consultadas com sucesso", formacoes));
+    public ResponseEntity<ApiResponse<List<InstrutorFormacaoConsultaDTO>>> consultaFormacoes(
+            @RequestParam List<Long> instrutorIds) {
+
+        List<InstrutorFormacaoConsultaDTO> response = serviceInstrutorFormacao.buscarFormacoesPorInstrutores(instrutorIds);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Sucesso", response));
+    }
+
+    @GetMapping("/turmas/impressao")
+    public ResponseEntity<ApiResponse<TurmaImpressaoDTO>> consultaParaImpressao(
+            @RequestParam Long idTurma,
+            @RequestParam List<Long> idTrabalhadores) {
+
+        TurmaImpressaoDTO dto = serviceTurmas.consultaParaImpressao(idTurma, idTrabalhadores);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Dados para impressão", dto));
     }
 }
