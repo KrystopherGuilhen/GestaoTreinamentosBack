@@ -1,5 +1,6 @@
 package gestao.treinamento.service.cadastros;
 
+import gestao.treinamento.exception.DuplicateException;
 import gestao.treinamento.exception.ResourceNotFoundException;
 import gestao.treinamento.model.dto.cadastros.EmpresaDTO;
 import gestao.treinamento.model.entidades.Empresa;
@@ -36,12 +37,18 @@ public class CadastroEmpresasService {
 
     @Transactional
     public EmpresaDTO criarEmpresa(EmpresaDTO dto) {
-        // Validação de CPF/CNPJ
-        if (StringUtils.hasText(dto.getCpf())) {
-            validateUniqueField("cpf", dto.getCpf());
+        // Validação de CPF único
+        if (StringUtils.hasText(dto.getCpf()) && repository.existsByCpf(dto.getCpf())) {
+            throw new DuplicateException("O CPF " + dto.getCpf() + " já existe nos registros.");
         }
-        if (StringUtils.hasText(dto.getCnpj())) {
-            validateUniqueField("cnpj", dto.getCnpj());
+
+        // Validação de CNPJ único
+        if (StringUtils.hasText(dto.getCnpj()) && repository.existsByCnpj(dto.getCnpj())) {
+            throw new DuplicateException("O CNPJ " + dto.getCnpj() + " já existe nos registros.");
+        }
+        // Validação de Telefone único
+        if (repository.existsByTelefone(dto.getTelefone())) {
+            throw new DuplicateException("O Telefone " + dto.getTelefone() + " já existe nos registros.");
         }
 
         // Converter o DTO para entidade Empresa
@@ -73,12 +80,44 @@ public class CadastroEmpresasService {
         Empresa existente = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Empresa não encontrado com ID: " + id));
 
+        // Validação de CPF único (se alterado)
+        if (StringUtils.hasText(dto.getCpf())) {
+            String novoCpf = dto.getCpf().trim();
+            if (!novoCpf.equals(existente.getCpf())) {
+                if (repository.existsByCpfAndIdNot(novoCpf, id)) {
+                    throw new DuplicateException("O CPF " + novoCpf + " já está em uso por outra empresa.");
+                }
+                existente.setCpf(novoCpf);
+            }
+        }
+
+        // Validação de CNPJ único (se alterado)
+        if (StringUtils.hasText(dto.getCnpj())) {
+            String novoCnpj = dto.getCnpj().trim();
+            if (!novoCnpj.equals(existente.getCnpj())) {
+                if (repository.existsByCnpjAndIdNot(novoCnpj, id)) {
+                    throw new DuplicateException("O CNPJ " + novoCnpj + " já está em uso por outra empresa.");
+                }
+                existente.setCnpj(novoCnpj);
+            }
+        }
+
+        // Validação de Telefone único (se alterado)
+        if (StringUtils.hasText(dto.getTelefone())) {
+            String novoTelefone = dto.getTelefone().trim();
+            if (!novoTelefone.equals(existente.getTelefone())) {
+                if (repository.existsByTelefoneAndIdNot(novoTelefone, id)) {
+                    throw new DuplicateException("O Telefone " + novoTelefone + " já está em uso por outra empresa.");
+                }
+                existente.setTelefone(novoTelefone);
+            }
+        }
+
         existente.setNome(dto.getNome());
-        existente.setCidade(dto.getCidade());
-        existente.setEstado(dto.getEstado());
-        existente.setTelefone(dto.getTelefone());
-        existente.setCnpj(dto.getCnpj());
-        existente.setCpf(dto.getCpf());
+        existente.setIdEstado(dto.getIdEstado());
+        existente.setNomeEstado(dto.getNomeEstado());
+        existente.setIdCidade(dto.getIdCidade());
+        existente.setNomeCidade(dto.getNomeCidade());
         existente.setNomeResponsavelEmpresa(dto.getNomeResponsavelEmpresa());
         existente.setEmailResponsavelEmpresa(dto.getEmailResponsavelEmpresa());
         existente.setRelacaoEspacoConfinado(dto.getRelacaoEspacoConfinado());
@@ -120,7 +159,6 @@ public class CadastroEmpresasService {
         return convertToDTO(empresaAtualizada);
     }
 
-
     public void deletarEmpresa(Long id) {
         if (!repository.existsById(id)) {
             throw new ResourceNotFoundException("Empresa não encontrada com ID: " + id);
@@ -135,7 +173,7 @@ public class CadastroEmpresasService {
     public void deletarEmpresas(List<Long> ids) {
         List<Empresa> empresas = repository.findAllById(ids);
         if (empresas.size() != ids.size()) {
-            throw new ResourceNotFoundException("Um ou mais IDs não foram encontrados.");
+            throw new ResourceNotFoundException("Nenhuma Empresa encontrada para os IDs fornecidos");
         }
         try {
             repository.deleteAll(empresas);
@@ -150,29 +188,16 @@ public class CadastroEmpresasService {
 
         dto.setId(empresa.getId());
         dto.setNome(empresa.getNome());
-        dto.setCidade(empresa.getCidade());
-        dto.setEstado(empresa.getEstado());
+        dto.setIdEstado(empresa.getIdEstado());
+        dto.setNomeEstado(empresa.getNomeEstado());
+        dto.setIdCidade(empresa.getIdCidade());
+        dto.setNomeCidade(empresa.getNomeCidade());
         dto.setTelefone(empresa.getTelefone());
         dto.setCnpj(empresa.getCnpj());
         dto.setCpf(empresa.getCpf());
         dto.setNomeResponsavelEmpresa(empresa.getNomeResponsavelEmpresa());
         dto.setEmailResponsavelEmpresa(empresa.getEmailResponsavelEmpresa());
         dto.setRelacaoEspacoConfinado(empresa.getRelacaoEspacoConfinado());
-
-        // Extrai os IDs e nomes das empresas vinculadas
-//        List<Long> idEmpresas = curso.getEmpresasVinculadas() != null
-//                ? curso.getEmpresasVinculadas().stream()
-//                .map(te -> te.getEmpresa().getId())
-//                .toList()
-//                : new ArrayList<>();
-//        dto.setIdEmpresaVinculo(idEmpresas);
-//
-//        List<String> nomesEmpresas = curso.getEmpresasVinculadas().stream()
-//                .map(te -> te.getEmpresa().getNome())
-//                .toList();
-//
-//        dto.setIdEmpresaVinculo(idEmpresas);
-//        dto.setNomeEmpresaVinculo(nomesEmpresas);
 
         // Extrai o ID e nome da modalidade vinculada (única)
         if (empresa.getIndustriasVinculadas() != null && !empresa.getIndustriasVinculadas().isEmpty()) {
@@ -195,11 +220,16 @@ public class CadastroEmpresasService {
     private Empresa convertToEntity(EmpresaDTO dto) {
         Empresa empresa = new Empresa();
         empresa.setNome(dto.getNome());
-        empresa.setCidade(dto.getCidade());
-        empresa.setEstado(dto.getEstado());
+        empresa.setIdEstado(dto.getIdEstado());
+        empresa.setNomeEstado(dto.getNomeEstado());
+        empresa.setIdCidade(dto.getIdCidade());
+        empresa.setNomeCidade(dto.getNomeCidade());
         empresa.setTelefone(dto.getTelefone());
-        empresa.setCnpj(dto.getCnpj());
-        empresa.setCpf(dto.getCpf());
+
+        // Campos únicos opcionais (tratar vazios)
+        empresa.setCpf(StringUtils.hasText(dto.getCpf()) ? dto.getCpf() : null);
+        empresa.setCnpj(StringUtils.hasText(dto.getCnpj()) ? dto.getCnpj() : null);
+
         empresa.setNomeResponsavelEmpresa(dto.getNomeResponsavelEmpresa());
         empresa.setEmailResponsavelEmpresa(dto.getEmailResponsavelEmpresa());
         empresa.setRelacaoEspacoConfinado(dto.getRelacaoEspacoConfinado());

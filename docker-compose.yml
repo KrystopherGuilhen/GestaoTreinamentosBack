@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  frontend:
+    image: SEU_NOME_DE_USUÁRIO/gestao-treinamentos-front-homolog:latest
+    ports:
+      - "4200:80"
+    restart: always
+    networks:
+      - app-network
+    depends_on:
+      - app
+
+  app:
+    image: SEU_NOME_DE_USUÁRIO/gestao-treinamentos-back-homolog:latest
+    ports:
+      - "8080:8080"
+      - "5005:5005"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/gestao-treinamentos
+      - SPRING_DATASOURCE_USERNAME=gestao-treinamentos
+      - SPRING_DATASOURCE_PASSWORD=senha123
+    networks:
+      - app-network
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: gestao-treinamentos
+      MYSQL_ROOT_PASSWORD: new123
+      MYSQL_USER: gestao-treinamentos
+      MYSQL_PASSWORD: senha123
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -u root -p$$MYSQL_ROOT_PASSWORD"]
+      interval: 5s
+      timeout: 10s
+      retries: 20
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mysql_data:

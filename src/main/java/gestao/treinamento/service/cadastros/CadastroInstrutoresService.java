@@ -1,5 +1,6 @@
 package gestao.treinamento.service.cadastros;
 
+import gestao.treinamento.exception.DuplicateException;
 import gestao.treinamento.exception.ResourceNotFoundException;
 import gestao.treinamento.model.dto.cadastros.InstrutorAssinaturaDTO;
 import gestao.treinamento.model.dto.cadastros.InstrutorCertificadosDTO;
@@ -39,12 +40,18 @@ public class CadastroInstrutoresService {
     // POST: Criar novo Instrutor
     @Transactional
     public InstrutorDTO criarInstrutor(InstrutorDTO dto) {
-        // Validação de CPF/CNPJ
-        if (StringUtils.hasText(dto.getCpf())) {
-            validateUniqueField("cpf", dto.getCpf());
+        // Validação de CPF único
+        if (StringUtils.hasText(dto.getCpf()) && repository.existsByCpf(dto.getCpf())) {
+            throw new DuplicateException("O CPF " + dto.getCpf() + " já existe nos registros.");
         }
-        if (StringUtils.hasText(dto.getCnpj())) {
-            validateUniqueField("cnpj", dto.getCnpj());
+
+        // Validação de CNPJ único
+        if (StringUtils.hasText(dto.getCnpj()) && repository.existsByCnpj(dto.getCnpj())) {
+            throw new DuplicateException("O CNPJ " + dto.getCnpj() + " já existe nos registros.");
+        }
+        // Validação de Telefone único
+        if (repository.existsByTelefone(dto.getTelefone())) {
+            throw new DuplicateException("O Telefone " + dto.getTelefone() + " já existe nos registros.");
         }
 
         // Converter o DTO para entidade Curso
@@ -92,19 +99,59 @@ public class CadastroInstrutoresService {
         Instrutor existente = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Instrutor com ID " + id + " não encontrado"));
 
+        // Validação de CPF único (se alterado)
+        if (StringUtils.hasText(dto.getCpf())) {
+            String novoCpf = dto.getCpf().trim();
+            if (!novoCpf.equals(existente.getCpf())) {
+                if (repository.existsByCpfAndIdNot(novoCpf, id)) {
+                    throw new DuplicateException("O CPF " + novoCpf + " já está em uso por outro instrutor.");
+                }
+                existente.setCpf(novoCpf);
+            }
+        }
+
+        // Validação de CNPJ único (se alterado)
+        if (StringUtils.hasText(dto.getCnpj())) {
+            String novoCnpj = dto.getCnpj().trim();
+            if (!novoCnpj.equals(existente.getCnpj())) {
+                if (repository.existsByCnpjAndIdNot(novoCnpj, id)) {
+                    throw new DuplicateException("O CNPJ " + novoCnpj + " já está em uso por outro instrutor.");
+                }
+                existente.setCnpj(novoCnpj);
+            }
+        }
+
+        // Validação de Telefone único (se alterado)
+        if (StringUtils.hasText(dto.getTelefone())) {
+            String novoTelefone = dto.getTelefone().trim();
+            if (!novoTelefone.equals(existente.getTelefone())) {
+                if (repository.existsByTelefoneAndIdNot(novoTelefone, id)) {
+                    throw new DuplicateException("O Telefone " + novoTelefone + " já está em uso por outro instrutor.");
+                }
+                existente.setTelefone(novoTelefone);
+            }
+        }
+
         existente.setId(dto.getId());
         existente.setNome(dto.getNome());
-        existente.setCidade(dto.getCidade());
-        existente.setEstado(dto.getEstado());
+        existente.setIdEstado(dto.getIdEstado());
+        existente.setNomeEstado(dto.getNomeEstado());
+        existente.setIdCidade(dto.getIdCidade());
+        existente.setNomeCidade(dto.getNomeCidade());
         existente.setTelefone(dto.getTelefone());
-        existente.setCpf(dto.getCpf());
-        existente.setCnpj(dto.getCnpj());
+        if (dto.getCpf() != null && !dto.getCpf().trim().isEmpty()) {
+            existente.setCpf(dto.getCpf());
+        }
+        if (dto.getCnpj() != null && !dto.getCnpj().trim().isEmpty()) {
+            existente.setCnpj(dto.getCnpj());
+        }
         existente.setEmail(dto.getEmail());
         existente.setPossuiMultiplasFormacoes(dto.isPossuiMultiplasFormacoes());
         existente.setExperiencia(dto.getExperiencia());
         existente.setNumeroRegistroProfissional(dto.getNumeroRegistroProfissional());
         existente.setUnidadeRegistroProfissional(dto.getUnidadeRegistroProfissional());
-        existente.setEstadoRegistroProfissional(dto.getEstadoRegistroProfissional());
+        existente.setIdEstadoRegistroProfissional(dto.getIdEstadoRegistroProfissional());
+        existente.setNomeEstadoRegistroProfissional(dto.getNomeEstadoRegistroProfissional());
 
         // 🔴🔴🔴 Atualizar formações (nova lógica)
         if (dto.getFormacoes() != null) {
@@ -221,18 +268,26 @@ public class CadastroInstrutoresService {
     // DELETE: Excluir Instrutor por ID
     public void deletarInstrutor(Long id) {
         if (!repository.existsById(id)) {
-            throw new ResourceNotFoundException("Instrutor não encontrado com ID: " + id);
+            throw new ResourceNotFoundException("Instrutor com ID " + id + " não encontrado");
         }
-        repository.deleteById(id);
+        try {
+            repository.deleteById(id);
+        } catch (DataIntegrityViolationException e) {
+            throw new IllegalStateException("Instrutor não pode ser excluído pois está vinculado a outro cadastro");
+        }
     }
 
     // DELETE: Excluir múltiplos Instrutores por lista de IDs
     public void deletarInstrutores(List<Long> ids) {
         List<Instrutor> instrutores = repository.findAllById(ids);
-        if (instrutores.size() != ids.size()) {
-            throw new ResourceNotFoundException("Um ou mais IDs não foram encontrados.");
+        if (instrutores.isEmpty()) {
+            throw new EntityNotFoundException("Nenhum instrutor encontrado para os IDs fornecidos");
         }
-        repository.deleteAll(instrutores);
+        try {
+            repository.deleteAll(instrutores);
+        } catch (DataIntegrityViolationException e) {
+            throw new IllegalStateException("Um ou mais instrutores não podem ser excluídos pois estão vinculados a outros cadastros.");
+        }
     }
 
     // Método auxiliar: Converter entidade para DTO
@@ -241,8 +296,10 @@ public class CadastroInstrutoresService {
 
         dto.setId(instrutor.getId());
         dto.setNome(instrutor.getNome());
-        dto.setCidade(instrutor.getCidade());
-        dto.setEstado(instrutor.getEstado());
+        dto.setIdEstado(instrutor.getIdEstado());
+        dto.setNomeEstado(instrutor.getNomeEstado());
+        dto.setIdCidade(instrutor.getIdCidade());
+        dto.setNomeCidade(instrutor.getNomeCidade());
         dto.setTelefone(instrutor.getTelefone());
         dto.setCpf(instrutor.getCpf());
         dto.setCnpj(instrutor.getCnpj());
@@ -251,7 +308,8 @@ public class CadastroInstrutoresService {
         dto.setExperiencia(instrutor.getExperiencia());
         dto.setNumeroRegistroProfissional(instrutor.getNumeroRegistroProfissional());
         dto.setUnidadeRegistroProfissional(instrutor.getUnidadeRegistroProfissional());
-        dto.setEstadoRegistroProfissional(instrutor.getEstadoRegistroProfissional());
+        dto.setIdEstadoRegistroProfissional(instrutor.getIdEstadoRegistroProfissional());
+        dto.setNomeEstadoRegistroProfissional(instrutor.getNomeEstadoRegistroProfissional());
 
         // 🔴🔴🔴 Mapear formações da tabela InstrutorFormacao
         List<String> formacoes = instrutorFormacaoRepository.findByInstrutorId(instrutor.getId())
@@ -272,9 +330,8 @@ public class CadastroInstrutoresService {
                         certDTO.setType(cert.getType());
                         certDTO.setSize(cert.getSize());
 
-                        // Gerar Data URI para o front
-                        certDTO.setBase64("data:" + cert.getMimeType() + ";base64," +
-                                Base64.getEncoder().encodeToString(cert.getDados()));
+                        // Apenas o Base64, sem o prefixo "data:"
+                        certDTO.setBase64(Base64.getEncoder().encodeToString(cert.getDados()));
 
                         // ObjectURL geralmente não é persistido, mas se necessário:
                         certDTO.setObjectURL(cert.getObjectURL());
@@ -307,9 +364,8 @@ public class CadastroInstrutoresService {
                         assDTO.setType(cert.getType());
                         assDTO.setSize(cert.getSize());
 
-                        // Gerar Data URI para o front
-                        assDTO.setBase64("data:" + cert.getMimeType() + ";base64," +
-                                Base64.getEncoder().encodeToString(cert.getDados()));
+                        // Apenas o Base64, sem o prefixo "data:"
+                        assDTO.setBase64(Base64.getEncoder().encodeToString(cert.getDados()));
 
                         // ObjectURL geralmente não é persistido, mas se necessário:
                         assDTO.setObjectURL(cert.getObjectURL());
@@ -329,8 +385,10 @@ public class CadastroInstrutoresService {
 
         instrutor.setId(dto.getId());
         instrutor.setNome(dto.getNome());
-        instrutor.setCidade(dto.getCidade());
-        instrutor.setEstado(dto.getEstado());
+        instrutor.setIdEstado(dto.getIdEstado());
+        instrutor.setNomeEstado(dto.getNomeEstado());
+        instrutor.setIdCidade(dto.getIdCidade());
+        instrutor.setNomeCidade(dto.getNomeCidade());
         instrutor.setTelefone(dto.getTelefone());
 
         // Campos únicos opcionais (tratar vazios)
@@ -342,7 +400,8 @@ public class CadastroInstrutoresService {
         instrutor.setExperiencia(dto.getExperiencia());
         instrutor.setNumeroRegistroProfissional(dto.getNumeroRegistroProfissional());
         instrutor.setUnidadeRegistroProfissional(dto.getUnidadeRegistroProfissional());
-        instrutor.setEstadoRegistroProfissional(dto.getEstadoRegistroProfissional());
+        instrutor.setIdEstadoRegistroProfissional(dto.getIdEstadoRegistroProfissional());
+        instrutor.setNomeEstadoRegistroProfissional(dto.getNomeEstadoRegistroProfissional());
 
         //        if (dto.getCertificados().getFirst().getBase64() == null || !dto.getCertificados().getFirst().getBase64().contains(",")) {
 //            throw new IllegalArgumentException("Base64 inválido");

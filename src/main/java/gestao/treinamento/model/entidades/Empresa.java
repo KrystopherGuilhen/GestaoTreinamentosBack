@@ -2,15 +2,17 @@ package gestao.treinamento.model.entidades;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@EqualsAndHashCode(callSuper = false)
 @Data
 @Entity
 @Table(name = "empresa")
-public class Empresa {
+public class Empresa extends Auditable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -19,11 +21,17 @@ public class Empresa {
     @Column(name = "nome", nullable = false, length = 150)
     private String nome;
 
-    @Column(name = "cidade", nullable = false, length = 100)
-    private String cidade;
+    @Column(name = "id_estado", nullable = false)
+    private Long idEstado;
 
-    @Column(name = "estado", nullable = false, length = 2)
-    private String estado;
+    @Column(name = "nome_estado", nullable = false, length = 2)
+    private String nomeEstado;
+
+    @Column(name = "id_cidade", nullable = false)
+    private Long idCidade;
+
+    @Column(name = "nome_cidade", nullable = false, length = 100)
+    private String NomeCidade;
 
     @Column(name = "telefone", nullable = false, length = 20)
     private String telefone;
@@ -40,7 +48,7 @@ public class Empresa {
     @Column(name = "email_responsavel_empresa", nullable = false, length = 100)
     private String emailResponsavelEmpresa;
 
-    @Column(name = "relacao_espaco_confinado", length = 100)
+    @Column(name = "relacao_espaco_confinado", columnDefinition = "TEXT")
     private String relacaoEspacoConfinado;
 
     @OneToMany(mappedBy = "empresa", cascade = CascadeType.ALL, orphanRemoval = true)

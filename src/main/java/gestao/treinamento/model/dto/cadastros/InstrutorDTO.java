@@ -13,8 +13,10 @@ public class InstrutorDTO {
 
     private Long id;
     private String nome;
-    private String cidade;
-    private String estado;
+    private Long idEstado;
+    private String nomeEstado;
+    private Long idCidade;
+    private String NomeCidade;
     private String telefone;
     private String cpf;
     private String cnpj;
@@ -25,7 +27,8 @@ public class InstrutorDTO {
     private String experiencia;
     private Integer numeroRegistroProfissional;
     private String unidadeRegistroProfissional;
-    private String estadoRegistroProfissional;
+    private Long idEstadoRegistroProfissional;
+    private String nomeEstadoRegistroProfissional;
 
     private Long idTipoPessoaVinculado;
     private String nomeTipoPessoaVinculado;

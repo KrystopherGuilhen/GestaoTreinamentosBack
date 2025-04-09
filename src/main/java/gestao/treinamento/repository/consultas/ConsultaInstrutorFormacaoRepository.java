@@ -12,8 +12,8 @@ import java.util.List;
 @Repository
 public interface ConsultaInstrutorFormacaoRepository extends JpaRepository<InstrutorFormacao, Long> {
 
-    @Query("SELECT i.instrutor.id AS instrutorId, i.id AS formacaoId, i.formacao AS formacaoNome " +
+    @Query("SELECT new gestao.treinamento.model.dto.consultas.InstrutorFormacaoConsultaDTO(i.id, i.formacao) " +
             "FROM InstrutorFormacao i " +
-            "WHERE i.instrutor.id IN :instrutorIds")
-    List<Object[]> findFormacoesAgrupadas(@Param("instrutorIds") List<Long> instrutorIds);
+            "WHERE i.instrutor.id IN :instrutorIds") // Acessando o ID do instrutor através do relacionamento
+    List<InstrutorFormacaoConsultaDTO> findAllFormacoesByInstrutorIds(@Param("instrutorIds") List<Long> instrutorIds);
 }

@@ -23,6 +23,7 @@ public class ConsultasController {
     private ConsultaTrabalhadoresService serviceTrabalhadores;
     private ConsultaInstrutoresService serviceInstrutores;
     private ConsultaCursosService serviceCursos;
+    private ConsultaPalestrasService servicePalestras;
     private ConsultaTurmasService serviceTurmas;
     private ConsultaIndustriasService serviceIndustrias;
     private ConsultaResponsavelTecnicoService serviceResponsavelTecnico;
@@ -39,6 +40,8 @@ public class ConsultasController {
     private ConsultaPermissaoUnidadeService servicePermissaoUnidade;
     private ConsultaPessoaService servicePessoa;
     private ConsultaInstrutorFormacaoService serviceInstrutorFormacao;
+    private ConsultaEstadosService serviceEstados;
+    private ConsultaCidadesService serviceCidades;
 
     // GET: Buscar todas as empresas
     @GetMapping("/empresas")
@@ -76,6 +79,14 @@ public class ConsultasController {
         return ResponseEntity.ok(new ApiResponse<>(true, "Trabalhadores consultados com sucesso", trabalhadores));
     }
 
+    // GET: Buscar trabalhadores por turma
+    @GetMapping("/trabalhadores/turma")
+    public ResponseEntity<ApiResponse<List<TrabalhadorConsultaDTO>>> consultaTrabalhadorPorTurma(
+            @RequestParam Long turmaId) {
+        List<TrabalhadorConsultaDTO> trabalhadores = serviceTrabalhadores.consultaPorTurma(turmaId);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Trabalhadores consultados com sucesso", trabalhadores));
+    }
+
     // GET: Buscar todos os instrutores
     @GetMapping("/instrutores")
     public ResponseEntity<ApiResponse<List<InstrutorConsultaDTO>>> consultaInstrutor() {
@@ -83,11 +94,24 @@ public class ConsultasController {
         return ResponseEntity.ok(new ApiResponse<>(true, "Instrutores consultados com sucesso", instrutores));
     }
 
-    // GET: Buscar todos os curso
+    // GET: Buscar todos os cursos
     @GetMapping("/cursos")
     public ResponseEntity<ApiResponse<List<CursoConsultaDTO>>> consultaCurso() {
         List<CursoConsultaDTO> cursos = serviceCursos.consultaCadastro();
         return ResponseEntity.ok(new ApiResponse<>(true, "Cursos consultados com sucesso", cursos));
+    }
+
+    @GetMapping("/relatorio-cursos-finalizados")
+    public ResponseEntity<ApiResponse<List<RelatorioCursoConsultaDTO>>> relatorioCursosFinalizados() {
+        List<RelatorioCursoConsultaDTO> relatorio = serviceCursos.relatorioCursosFinalizados();
+        return ResponseEntity.ok(new ApiResponse<>(true, "Relatório gerado com sucesso", relatorio));
+    }
+
+    // GET: Buscar todas as palestras
+    @GetMapping("/palestras")
+    public ResponseEntity<ApiResponse<List<PalestraConsultaDTO>>> consultaPalestra() {
+        List<PalestraConsultaDTO> palestras = servicePalestras.consultaCadastro();
+        return ResponseEntity.ok(new ApiResponse<>(true, "Palestras consultadas com sucesso", palestras));
     }
 
     // GET: Buscar todos as industrias
@@ -193,7 +217,7 @@ public class ConsultasController {
     public ResponseEntity<ApiResponse<List<InstrutorFormacaoConsultaDTO>>> consultaFormacoes(
             @RequestParam List<Long> instrutorIds) {
 
-        List<InstrutorFormacaoConsultaDTO> response = serviceInstrutorFormacao.buscarFormacoesPorInstrutores(instrutorIds);
+        List<InstrutorFormacaoConsultaDTO> response = serviceInstrutorFormacao.consultaPorInstrutores(instrutorIds);
         return ResponseEntity.ok(new ApiResponse<>(true, "Sucesso", response));
     }
 
@@ -204,5 +228,20 @@ public class ConsultasController {
 
         TurmaImpressaoDTO dto = serviceTurmas.consultaParaImpressao(idTurma, idTrabalhadores);
         return ResponseEntity.ok(new ApiResponse<>(true, "Dados para impressão", dto));
+    }
+
+    // GET: Buscar todos os estados
+    @GetMapping("/estados")
+    public ResponseEntity<ApiResponse<List<EstadoConsultaDTO>>> consultaEstado() {
+        List<EstadoConsultaDTO> estados = serviceEstados.consultaCadastro();
+        return ResponseEntity.ok(new ApiResponse<>(true, "Estados consultados com sucesso", estados));
+    }
+
+    // GET: Buscar todas as cidades por estados
+    @GetMapping("/cidades")
+    public ResponseEntity<ApiResponse<List<CidadeConsultaDTO>>> consultaCidade(
+            @RequestParam Long idEstado) {
+        List<CidadeConsultaDTO> cidades = serviceCidades.consultaCadastro(idEstado);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Estados consultados com sucesso", cidades));
     }
 }

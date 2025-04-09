@@ -6,12 +6,14 @@ import gestao.treinamento.repository.cadastros.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,6 +41,9 @@ public class CadastroTurmasService {
 
     private final CadastroCursosRepository cursosRepository;
     private final CadastroTurmaCursoRepository turmaCursoRepository;
+
+    private final CadastroPalestrasRepository palestrasRepository;
+    private final CadastroTurmaPalestraRepository turmaPalestraRepository;
 
     private final CadastroUnidadesRepository unidadeRepository;
     private final CadastroTurmaUnidadeRepository turmaUnidadeRepository;
@@ -111,20 +116,54 @@ public class CadastroTurmasService {
         }
 
         // Verificar se há instrutores no DTO
-        if (dto.getIdInstrutorVinculo() != null && !dto.getIdInstrutorVinculo().isEmpty()) {
-            for (Long idInstrutor : dto.getIdInstrutorVinculo()) {
-                // Recuperar o instrutor pelo ID (se necessário)
-                Instrutor instrutor = instrutoresRepository.findById(idInstrutor)
-                        .orElseThrow(() -> new RuntimeException("Instrutor não encontrada: ID " + idInstrutor));
+        if (dto.getIdInstrutorVinculo() != null) {
+            // Recuperar o evento pelo ID
+            Instrutor instrutor = instrutoresRepository.findById(dto.getIdInstrutorVinculo())
+                    .orElseThrow(() -> new RuntimeException("Instrutor não encontrado: ID " + dto.getIdInstrutorVinculo()));
 
-                // Criar a associação turma-instrutor
-                TurmaInstrutor turmaInstrutor = new TurmaInstrutor();
-                turmaInstrutor.setTurma(turma);
-                turmaInstrutor.setInstrutor(instrutor);
+            // Criar a associação turma-instrutor
+            TurmaInstrutor turmaInstrutor = new TurmaInstrutor();
+            turmaInstrutor.setTurma(turma);
+            turmaInstrutor.setInstrutor(instrutor);
 
-                // Salvar a associação
-                turmaInstrutorRepository.save(turmaInstrutor);
+            if (dto.getMultiplosInstrutores() == true) {
+                turmaInstrutor.setIdMultiploInstrutor(1);
+            } else {
+                turmaInstrutor.setIdMultiploInstrutor(1);
             }
+
+            // Salvar a associação
+            turmaInstrutorRepository.save(turmaInstrutor);
+        }
+
+        if (dto.getIdInstrutorVinculoDois() != null) {
+            // Recuperar o evento pelo ID
+            Instrutor instrutor = instrutoresRepository.findById(dto.getIdInstrutorVinculoDois())
+                    .orElseThrow(() -> new RuntimeException("Instrutor não encontrado: ID " + dto.getIdInstrutorVinculoDois()));
+
+            // Criar a associação turma-instrutorUm
+            TurmaInstrutor turmaInstrutor = new TurmaInstrutor();
+            turmaInstrutor.setTurma(turma);
+            turmaInstrutor.setInstrutor(instrutor);
+            turmaInstrutor.setIdMultiploInstrutor(2);
+
+            // Salvar a associação
+            turmaInstrutorRepository.save(turmaInstrutor);
+        }
+
+        if (dto.getIdInstrutorVinculoDois() != null) {
+            // Recuperar o evento pelo ID
+            Instrutor instrutor = instrutoresRepository.findById(dto.getIdInstrutorVinculoDois())
+                    .orElseThrow(() -> new RuntimeException("Instrutor não encontrado: ID " + dto.getIdInstrutorVinculoDois()));
+
+            // Criar a associação turma-instrutorDois
+            TurmaInstrutor turmaInstrutor = new TurmaInstrutor();
+            turmaInstrutor.setTurma(turma);
+            turmaInstrutor.setInstrutor(instrutor);
+            turmaInstrutor.setIdMultiploInstrutor(3);
+
+            // Salvar a associação
+            turmaInstrutorRepository.save(turmaInstrutor);
         }
 
         // Verificar se há empresas vinculadas no DTO
@@ -159,6 +198,21 @@ public class CadastroTurmasService {
             turmaCursoRepository.save(turmaCurso);
         }
 
+        // Verificar se há uma palestra vinculado no DTO
+        if (dto.getIdPalestraVinculo() != null) {
+            // Recuperar a palestra pelo ID
+            Palestra palestra = palestrasRepository.findById(dto.getIdPalestraVinculo())
+                    .orElseThrow(() -> new RuntimeException("Palestra não encontrado: ID " + dto.getIdPalestraVinculo()));
+
+            // Criar a associação turma-curso
+            TurmaPalestra turmaPalestra = new TurmaPalestra();
+            turmaPalestra.setTurma(turma);
+            turmaPalestra.setPalestra(palestra);
+
+            // Salvar a associação
+            turmaPalestraRepository.save(turmaPalestra);
+        }
+
         // Verificar se há uma unidade vinculado no DTO
         if (dto.getIdUnidadeVinculo() != null) {
             // Recuperar o unidade pelo ID
@@ -175,20 +229,54 @@ public class CadastroTurmasService {
         }
 
         // Verificar se há um instrutorFormacao vinculado no DTO
-        if (dto.getIdInstrutorFormacaoVinculo() != null && !dto.getIdInstrutorFormacaoVinculo().isEmpty()) {
-            for (Long idInstrutorFormacao : dto.getIdInstrutorFormacaoVinculo()) {
-                // Recuperar o instrutorFormacao pelo ID (se necessário)
-                InstrutorFormacao instrutorFormacao = instrutorFormacaoRepository.findById(idInstrutorFormacao)
-                        .orElseThrow(() -> new RuntimeException("Formação do Instrutor não encontrada: ID " + idInstrutorFormacao));
+        if (dto.getIdInstrutorFormacaoVinculo() != null) {
+            // Recuperar o evento pelo ID
+            InstrutorFormacao instrutorFormacao = instrutorFormacaoRepository.findById(dto.getIdInstrutorFormacaoVinculo())
+                    .orElseThrow(() -> new RuntimeException("Formação não encontrado: ID " + dto.getIdInstrutorFormacaoVinculo()));
 
-                // Criar a associação turma-instrutor-formacao
-                TurmaInstrutorFormacao turmaInstrutorFormacao = new TurmaInstrutorFormacao();
-                turmaInstrutorFormacao.setTurma(turma);
-                turmaInstrutorFormacao.setInstrutorFormacao(instrutorFormacao);
+            // Criar a associação turma-instrutor-formacao
+            TurmaInstrutorFormacao turmaInstrutorFormacao = new TurmaInstrutorFormacao();
+            turmaInstrutorFormacao.setTurma(turma);
+            turmaInstrutorFormacao.setInstrutorFormacao(instrutorFormacao);
 
-                // Salvar a associação
-                turmaInstrutorFormacaoRepository.save(turmaInstrutorFormacao);
+            if (dto.getMultiplosInstrutores() == true) {
+                turmaInstrutorFormacao.setIdMultiploFormacao(1);
+            } else {
+                turmaInstrutorFormacao.setIdMultiploFormacao(1);
             }
+
+            // Salvar a associação
+            turmaInstrutorFormacaoRepository.save(turmaInstrutorFormacao);
+        }
+
+        if (dto.getIdInstrutorFormacaoVinculoUm() != null) {
+            // Recuperar o evento pelo ID
+            InstrutorFormacao instrutorFormacao = instrutorFormacaoRepository.findById(dto.getIdInstrutorFormacaoVinculoUm())
+                    .orElseThrow(() -> new RuntimeException("Formação não encontrado: ID " + dto.getIdInstrutorFormacaoVinculoUm()));
+
+            // Criar a associação turma-instrutor-formacao
+            TurmaInstrutorFormacao turmaInstrutorFormacao = new TurmaInstrutorFormacao();
+            turmaInstrutorFormacao.setTurma(turma);
+            turmaInstrutorFormacao.setInstrutorFormacao(instrutorFormacao);
+            turmaInstrutorFormacao.setIdMultiploFormacao(2);
+
+            // Salvar a associação
+            turmaInstrutorFormacaoRepository.save(turmaInstrutorFormacao);
+        }
+
+        if (dto.getIdInstrutorFormacaoVinculoDois() != null) {
+            // Recuperar o evento pelo ID
+            InstrutorFormacao instrutorFormacao = instrutorFormacaoRepository.findById(dto.getIdInstrutorFormacaoVinculoDois())
+                    .orElseThrow(() -> new RuntimeException("Formação não encontrado: ID " + dto.getIdInstrutorFormacaoVinculoDois()));
+
+            // Criar a associação turma-instrutor-formacao
+            TurmaInstrutorFormacao turmaInstrutorFormacao = new TurmaInstrutorFormacao();
+            turmaInstrutorFormacao.setTurma(turma);
+            turmaInstrutorFormacao.setInstrutorFormacao(instrutorFormacao);
+            turmaInstrutorFormacao.setIdMultiploFormacao(3);
+
+            // Salvar a associação
+            turmaInstrutorFormacaoRepository.save(turmaInstrutorFormacao);
         }
 
         // Retornar o DTO do turma criado
@@ -202,6 +290,7 @@ public class CadastroTurmasService {
                 .orElseThrow(() -> new EntityNotFoundException("Turma com ID " + id + " não encontrado"));
 
         existente.setNome(dto.getNome());
+        existente.setAtivo(dto.getAtivo());
 
         if (dto.getDataInicio() != null) {
             String dataInicioStr = dto.getDataInicio();
@@ -245,6 +334,10 @@ public class CadastroTurmasService {
 
         existente.setValorContratoCrm(dto.getValorContratoCrm());
         existente.setNumeroContratoCrm(dto.getNumeroContratoCrm());
+        existente.setIdCidadeTreinamento(dto.getIdCidadeTreinamento());
+        existente.setNomeCidadeTreinamento(dto.getNomeCidadeTreinamento());
+        existente.setObservacaoNr(dto.getObservacaoNr());
+        existente.setMultiplosInstrutores(dto.getMultiplosInstrutores());
 
         // Atualizar associações com evento
         if (dto.getIdEventoVinculo() != null) {
@@ -340,32 +433,34 @@ public class CadastroTurmasService {
             }
         }
 
-        // Atualizar associações com instrutores
-        if (dto.getIdInstrutorVinculo() != null) {
-            // Recuperar as associações existentes (com a chave composta idTurma e idInstrutor)
-            List<Long> idsInstrutoresVinculadas = turmaInstrutorRepository.findInstrutorByTurmaId(id);
+        // Atualizar associações com instrutorFormacao
+        // Vínculo 1 (sempre atualiza se o ID estiver presente)
+        if (dto.getIdInstrutorFormacaoVinculo() != null) {
+            atualizarVinculoInstrutorFormacao(id, dto.getIdInstrutorFormacaoVinculo(), 1, existente);
+        }
 
-            // Remover associações que não estão mais na lista
-            List<Long> idsParaRemover = idsInstrutoresVinculadas.stream()
-                    .filter(idInstrutor -> !dto.getIdInstrutorVinculo().contains(idInstrutor))
-                    .toList();
-            turmaInstrutorRepository.deleteByTurmaIdAndInstrutorIds(id, idsParaRemover);
-
-            // Adicionar novas associações (para cada instrutor que não existe na tabela)
-            for (Long idInstrutor : dto.getIdTrabalhadorVinculo()) {
-                boolean existe = turmaInstrutorRepository.existsByTurmaIdAndInstrutorId(id, idInstrutor);
-                if (!existe) {
-                    Instrutor instrutor = instrutoresRepository.findById(idInstrutor)
-                            .orElseThrow(() -> new EntityNotFoundException("Instrutor com ID " + idInstrutor + " não encontrada"));
-
-                    TurmaInstrutor novaAssociacao = new TurmaInstrutor();
-                    novaAssociacao.setTurma(existente);
-                    novaAssociacao.setInstrutor(instrutor);
-
-                    // Aqui, a chave primária (ID) será gerada automaticamente, já que a tabela tem uma chave composta
-                    turmaInstrutorRepository.save(novaAssociacao);
-                }
+        // Sempre processar vínculos 2 e 3, mesmo com multiplosInstrutores = false
+        if (dto.getMultiplosInstrutores()) {
+            // Vínculo 2 (atualiza ou remove)
+            if (dto.getIdInstrutorVinculoUm() != null) {
+                atualizarVinculoInstrutor(id, dto.getIdInstrutorVinculoUm(), 2, existente);
+            } else {
+                List<TurmaInstrutor> vinculos2 = turmaInstrutorRepository.findByTurmaIdAndIdMultiploInstrutor(id, 2);
+                turmaInstrutorRepository.deleteAll(vinculos2);
             }
+
+            // Vínculo 3 (atualiza ou remove)
+            if (dto.getIdInstrutorVinculoDois() != null) {
+                atualizarVinculoInstrutor(id, dto.getIdInstrutorVinculoDois(), 3, existente);
+            } else {
+                List<TurmaInstrutor> vinculos3 = turmaInstrutorRepository.findByTurmaIdAndIdMultiploInstrutor(id, 3);
+                turmaInstrutorRepository.deleteAll(vinculos3);
+            }
+        } else {
+            // Forçar remoção de todos vínculos 2 e 3
+            List<TurmaInstrutor> vinculos2e3 = turmaInstrutorRepository
+                    .findByTurmaIdAndIdMultiploInstrutorIn(id, List.of(2, 3));
+            turmaInstrutorRepository.deleteAll(vinculos2e3);
         }
 
         // Atualizar associações com empresas
@@ -429,6 +524,39 @@ public class CadastroTurmasService {
             }
         }
 
+        // Atualizar associações com palestra
+        if (dto.getIdPalestraVinculo() != null) {
+            // Recuperar as associações existentes (com a chave composta idTurma e idCurso)
+            List<Long> idsPalestrasVinculados = turmaPalestraRepository.findPalestraByTurmaId(id);
+
+            // Verificar se o palestra atual está na lista de associações
+            Long idPalestraVinculo = dto.getIdPalestraVinculo();
+
+            // Remover associações que não correspondem ao novo curso vinculado
+            List<Long> idsParaRemover = idsPalestrasVinculados.stream()
+                    .filter(idPalestra -> !idPalestra.equals(idPalestraVinculo))
+                    .toList();
+            if (!idsParaRemover.isEmpty()) {
+                turmaPalestraRepository.deleteByTurmaIdAndPalestraIds(id, idsParaRemover);
+            }
+
+            // Verificar se a palestra já está associado
+            boolean existe = turmaPalestraRepository.existsByTurmaIdAndPalestraId(id, idPalestraVinculo);
+            if (!existe) {
+                // Recuperar o palestra pelo ID
+                Palestra palestra = palestrasRepository.findById(idPalestraVinculo)
+                        .orElseThrow(() -> new EntityNotFoundException("Palestra com ID " + idPalestraVinculo + " não encontrado"));
+
+                // Criar a nova associação
+                TurmaPalestra novaAssociacao = new TurmaPalestra();
+                novaAssociacao.setTurma(existente);
+                novaAssociacao.setPalestra(palestra);
+
+                // Salvar a nova associação
+                turmaPalestraRepository.save(novaAssociacao);
+            }
+        }
+
         // Atualizar associações com unidade
         if (dto.getIdUnidadeVinculo() != null) {
             // Recuperar as associações existentes (com a chave composta idTurma e idUnidade)
@@ -462,35 +590,43 @@ public class CadastroTurmasService {
             }
         }
 
-        // Atualizar associações com instrutorFormacao
-        if (dto.getIdInstrutorFormacaoVinculo() != null) {
-            // Recuperar as associações existentes (com a chave composta idTurma e idInstrutorFormacao)
-            List<Long> idsInstrutorFormacaoesVinculadas = turmaInstrutorFormacaoRepository.findInstrutorFormacaoByTurmaId(id);
-
-            // Remover associações que não estão mais na lista
-            List<Long> idsParaRemover = idsInstrutorFormacaoesVinculadas.stream()
-                    .filter(idInstrutorFormacao -> !dto.getIdInstrutorFormacaoVinculo().contains(idInstrutorFormacao))
-                    .toList();
-            turmaInstrutorFormacaoRepository.deleteByTurmaIdAndInstrutorFormacaoIds(id, idsParaRemover);
-
-            // Adicionar novas associações (para cada InstrutorFormacao que não existe na tabela)
-            for (Long idInstrutorFormacao : dto.getIdTrabalhadorVinculo()) {
-                boolean existe = turmaInstrutorFormacaoRepository.existsByTurmaIdAndInstrutorFormacaoId(id, idInstrutorFormacao);
-                if (!existe) {
-                    InstrutorFormacao InstrutorFormacao = instrutorFormacaoRepository.findById(idInstrutorFormacao)
-                            .orElseThrow(() -> new EntityNotFoundException("Formação do Instrutor com ID " + idInstrutorFormacao + " não encontrado"));
-
-                    TurmaInstrutorFormacao novaAssociacao = new TurmaInstrutorFormacao();
-                    novaAssociacao.setTurma(existente);
-                    novaAssociacao.setInstrutorFormacao(InstrutorFormacao);
-
-                    // Aqui, a chave primária (ID) será gerada automaticamente, já que a tabela tem uma chave composta
-                    turmaInstrutorFormacaoRepository.save(novaAssociacao);
-                }
-            }
+        // Atualizar associações com instrutores
+        // ========== INSTRUTORES ==========
+        // Vínculo 1 (sempre processar)
+        if (dto.getIdInstrutorVinculo() != null) {
+            atualizarVinculoInstrutor(id, dto.getIdInstrutorVinculo(), 1, existente);
+        } else {
+            // Remove vínculo 1 apenas se veio null
+            List<TurmaInstrutor> vinculos1 = turmaInstrutorRepository.findByTurmaIdAndIdMultiploInstrutor(id, 1);
+            turmaInstrutorRepository.deleteAll(vinculos1);
         }
 
-        existente.setObservacaoNr(dto.getObservacaoNr());
+        // Vínculos 2 e 3 (processar independente de multiplosInstrutores)
+        // --- Vínculo 2 ---
+        if (dto.getIdInstrutorVinculoUm() != null) {
+            atualizarVinculoInstrutor(id, dto.getIdInstrutorVinculoUm(), 2, existente);
+        } else {
+            // Remove vínculo 2 apenas se veio null
+            List<TurmaInstrutor> vinculos2 = turmaInstrutorRepository.findByTurmaIdAndIdMultiploInstrutor(id, 2);
+            turmaInstrutorRepository.deleteAll(vinculos2);
+        }
+
+        // --- Vínculo 3 ---
+        if (dto.getIdInstrutorVinculoDois() != null) {
+            atualizarVinculoInstrutor(id, dto.getIdInstrutorVinculoDois(), 3, existente);
+        } else {
+            // Remove vínculo 3 apenas se veio null
+            List<TurmaInstrutor> vinculos3 = turmaInstrutorRepository.findByTurmaIdAndIdMultiploInstrutor(id, 3);
+            turmaInstrutorRepository.deleteAll(vinculos3);
+        }
+
+
+        if (!dto.getMultiplosInstrutores()) {
+            // Remove apenas vínculos 2 e 3 se a flag estiver desativada
+            List<TurmaInstrutor> vinculos2e3 = turmaInstrutorRepository
+                    .findByTurmaIdAndIdMultiploInstrutorIn(id, List.of(2, 3));
+            turmaInstrutorRepository.deleteAll(vinculos2e3);
+        }
 
         Turma turmaAtualizado = repository.save(existente);
         return convertToDTO(turmaAtualizado);
@@ -501,18 +637,24 @@ public class CadastroTurmasService {
         if (!repository.existsById(id)) {
             throw new EntityNotFoundException("Turma com ID " + id + " não encontrado");
         }
-        repository.deleteById(id);
+        try {
+            repository.deleteById(id);
+        } catch (DataIntegrityViolationException e) {
+            throw new IllegalStateException("Turma não pode ser excluída pois está vinculada a outro cadastro");
+        }
     }
 
     // DELETE: Excluir múltiplos turmas por lista de IDs
     public void excluirTurmas(List<Long> ids) {
         List<Turma> turmas = repository.findAllById(ids);
-
         if (turmas.isEmpty()) {
-            throw new EntityNotFoundException("Nenhum Turma encontrado para os IDs fornecidos");
+            throw new EntityNotFoundException("Nenhuma Turma encontrada para os IDs fornecidos");
         }
-
-        repository.deleteAll(turmas);
+        try {
+            repository.deleteAll(turmas);
+        } catch (DataIntegrityViolationException e) {
+            throw new IllegalStateException("Uma ou mais Turmas não podem ser excluídas pois estão vinculadas a outros cadastros.");
+        }
     }
 
     // Método auxiliar: Converter entidade para DTO
@@ -521,12 +663,39 @@ public class CadastroTurmasService {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
         dto.setId(turma.getId());
+        // Aplica a condição para o campo 'ativo'
+        boolean ativo = turma.getAtivo();
+        LocalDate dataFimTurma = turma.getDataFim();
+        if (dataFimTurma != null && dataFimTurma.isBefore(LocalDate.now())) {
+            if (ativo) {
+                ativo = false;
+            }
+        }
+        dto.setAtivo(ativo);
         dto.setNome(turma.getNome());
         dto.setDataInicio(
                 turma.getDataInicio() != null
                         ? turma.getDataInicio().format(formatter)
                         : null
         );
+        // Calcula se data fim é passada
+        boolean dataFimPassada = turma.getDataFim() != null
+                && turma.getDataFim().isBefore(LocalDate.now());
+
+        dto.setDataFimPassada(dataFimPassada);
+
+        // Calcula mensagem se necessário
+        if (!turma.getAtivo() && dataFimPassada) {
+            LocalDate dataLimite = turma.getDataFim().plusDays(30);
+            long diasRestantes = ChronoUnit.DAYS.between(LocalDate.now(), dataLimite);
+
+            String mensagem = diasRestantes > 0
+                    ? "Você tem " + diasRestantes + " dias para impressão do Certificado dos alunos (até " + dataLimite.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) + ")."
+                    : "Período de impressão de Certificado expirado";
+
+            dto.setMensagemInativacao(mensagem);
+        }
+
         dto.setDataFim(
                 turma.getDataFim() != null
                         ? turma.getDataFim().format(formatter)
@@ -534,6 +703,10 @@ public class CadastroTurmasService {
         );
         dto.setValorContratoCrm(turma.getValorContratoCrm());
         dto.setNumeroContratoCrm(turma.getNumeroContratoCrm());
+        dto.setIdCidadeTreinamento(turma.getIdCidadeTreinamento());
+        dto.setNomeCidadeTreinamento(turma.getNomeCidadeTreinamento());
+        dto.setObservacaoNr(turma.getObservacaoNr());
+        dto.setMultiplosInstrutores(turma.getMultiplosInstrutores());
 
         // Extrai o ID e nome do Evento vinculado (única)
         if (turma.getTurmaEventosVinculados() != null && !turma.getTurmaEventosVinculados().isEmpty()) {
@@ -568,18 +741,45 @@ public class CadastroTurmasService {
                 .toList();
         dto.setNomeTrabalhadorVinculo(nomesTrabalhadores);
 
-        // Extrai o ID e nome do instrutor vinculado (multiplos)
-        List<Long> idInstrutor = turma.getTurmaInstrutoresVinculados() != null
-                ? turma.getTurmaInstrutoresVinculados().stream()
-                .map(te -> te.getInstrutor().getId())
-                .toList()
-                : new ArrayList<>();
-        dto.setIdInstrutorVinculo(idInstrutor);
+        // Extrai os IDs e nomes dos instrutores vinculados
+        if (turma.getTurmaInstrutoresVinculados() != null && !turma.getTurmaInstrutoresVinculados().isEmpty()) {
+            // Limpa os campos para evitar dados residuais
+            dto.setIdInstrutorVinculo(null);
+            dto.setNomeInstrutorVinculo(null);
+            dto.setIdInstrutorVinculoUm(null);
+            dto.setNomeInstrutorVinculoUm(null);
+            dto.setIdInstrutorVinculoDois(null);
+            dto.setNomeInstrutorVinculoDois(null);
 
-        List<String> nomeInstrutor = turma.getTurmaInstrutoresVinculados().stream()
-                .map(te -> te.getInstrutor().getNome())
-                .toList();
-        dto.setNomeInstrutorVinculo(nomeInstrutor);
+            // Itera sobre todos os vínculos para preencher os campos corretos
+            for (TurmaInstrutor turmaInstrutor : turma.getTurmaInstrutoresVinculados()) {
+                switch (turmaInstrutor.getIdMultiploInstrutor()) {
+                    case 1:
+                        dto.setIdInstrutorVinculo(turmaInstrutor.getInstrutor().getId());
+                        dto.setNomeInstrutorVinculo(turmaInstrutor.getInstrutor().getNome());
+                        break;
+                    case 2:
+                        dto.setIdInstrutorVinculoUm(turmaInstrutor.getInstrutor().getId());
+                        dto.setNomeInstrutorVinculoUm(turmaInstrutor.getInstrutor().getNome());
+                        break;
+                    case 3:
+                        dto.setIdInstrutorVinculoDois(turmaInstrutor.getInstrutor().getId());
+                        dto.setNomeInstrutorVinculoDois(turmaInstrutor.getInstrutor().getNome());
+                        break;
+                    default:
+                        // Tratar valores inesperados, se necessário
+                        break;
+                }
+            }
+        } else {
+            // Se não houver vínculos, limpa todos os campos
+            dto.setIdInstrutorVinculo(null);
+            dto.setNomeInstrutorVinculo(null);
+            dto.setIdInstrutorVinculoUm(null);
+            dto.setNomeInstrutorVinculoUm(null);
+            dto.setIdInstrutorVinculoDois(null);
+            dto.setNomeInstrutorVinculoDois(null);
+        }
 
         // Extrai os IDs e nomes das empresas vinculados (multiplo)
         List<Long> idEmpresas = turma.getTurmaEmpresasVinculadas() != null
@@ -604,6 +804,16 @@ public class CadastroTurmasService {
             dto.setNomeCursoVinculo(null);
         }
 
+        // Extrai o ID e nome da Palestra vinculada (unico)
+        if (turma.getTurmaPalestrasVinculadas() != null && !turma.getTurmaPalestrasVinculadas().isEmpty()) {
+            TurmaPalestra turmaPalestra = turma.getTurmaPalestrasVinculadas().get(0);
+            dto.setIdPalestraVinculo(turmaPalestra.getPalestra().getId());
+            dto.setNomePalestraVinculo(turmaPalestra.getPalestra().getNomeEvento());
+        } else {
+            dto.setIdPalestraVinculo(null);
+            dto.setNomePalestraVinculo(null);
+        }
+
         // Extrai o ID e nome do Unidade vinculado (única)
         if (turma.getTurmaUnidadesVinculadas() != null && !turma.getTurmaUnidadesVinculadas().isEmpty()) {
             TurmaUnidade turmaUnidade = turma.getTurmaUnidadesVinculadas().get(0);
@@ -614,18 +824,45 @@ public class CadastroTurmasService {
             dto.setNomeUnidadeVinculo(null);
         }
 
-        // Extrai os IDs e nomes das InstrutorFormacao vinculados (multiplo)
-        List<Long> idInstrutorFormacao = turma.getTurmaInstrutorFormacaosVinculados() != null
-                ? turma.getTurmaInstrutorFormacaosVinculados().stream()
-                .map(te -> te.getInstrutorFormacao().getId())
-                .toList()
-                : new ArrayList<>();
-        dto.setIdInstrutorFormacaoVinculo(idInstrutorFormacao);
+        // Extrai os IDs e nomes dos instrutores de formação vinculados
+        if (turma.getTurmaInstrutorFormacaosVinculados() != null && !turma.getTurmaInstrutorFormacaosVinculados().isEmpty()) {
+            // Limpa os campos para evitar dados residuais
+            dto.setIdInstrutorFormacaoVinculo(null);
+            dto.setNomeInstrutorFormacaoVinculo(null);
+            dto.setIdInstrutorFormacaoVinculoUm(null);
+            dto.setNomeInstrutorFormacaoVinculoUm(null);
+            dto.setIdInstrutorFormacaoVinculoDois(null);
+            dto.setNomeInstrutorFormacaoVinculoDois(null);
 
-        List<String> nomesInstrutorFormacao = turma.getTurmaInstrutorFormacaosVinculados().stream()
-                .map(te -> te.getInstrutorFormacao().getFormacao())
-                .toList();
-        dto.setNomeInstrutorFormacaoVinculo(nomesInstrutorFormacao);
+            // Itera sobre todos os vínculos
+            for (TurmaInstrutorFormacao turmaInstrutorFormacao : turma.getTurmaInstrutorFormacaosVinculados()) {
+                switch (turmaInstrutorFormacao.getIdMultiploFormacao()) {
+                    case 1:
+                        dto.setIdInstrutorFormacaoVinculo(turmaInstrutorFormacao.getInstrutorFormacao().getId());
+                        dto.setNomeInstrutorFormacaoVinculo(turmaInstrutorFormacao.getInstrutorFormacao().getFormacao());
+                        break;
+                    case 2:
+                        dto.setIdInstrutorFormacaoVinculoUm(turmaInstrutorFormacao.getInstrutorFormacao().getId());
+                        dto.setNomeInstrutorFormacaoVinculoUm(turmaInstrutorFormacao.getInstrutorFormacao().getFormacao());
+                        break;
+                    case 3:
+                        dto.setIdInstrutorFormacaoVinculoDois(turmaInstrutorFormacao.getInstrutorFormacao().getId());
+                        dto.setNomeInstrutorFormacaoVinculoDois(turmaInstrutorFormacao.getInstrutorFormacao().getFormacao());
+                        break;
+                    default:
+                        // Tratar valores inesperados
+                        break;
+                }
+            }
+        } else {
+            // Limpa campos se não houver vínculos
+            dto.setIdInstrutorFormacaoVinculo(null);
+            dto.setNomeInstrutorFormacaoVinculo(null);
+            dto.setIdInstrutorFormacaoVinculoUm(null);
+            dto.setNomeInstrutorFormacaoVinculoUm(null);
+            dto.setIdInstrutorFormacaoVinculoDois(null);
+            dto.setNomeInstrutorFormacaoVinculoDois(null);
+        }
 
         return dto;
     }
@@ -633,6 +870,7 @@ public class CadastroTurmasService {
     // Método auxiliar: Converter DTO para entidade
     private Turma convertToEntity(TurmaDTO dto) {
         Turma turma = new Turma();
+        turma.setAtivo(dto.getAtivo());
         turma.setNome(dto.getNome());
 
         // Converter o formato ISO 8601 para LocalDate
@@ -641,6 +879,9 @@ public class CadastroTurmasService {
         turma.setValorContratoCrm(dto.getValorContratoCrm());
         turma.setNumeroContratoCrm(dto.getNumeroContratoCrm());
         turma.setObservacaoNr(dto.getObservacaoNr());
+        turma.setIdCidadeTreinamento(dto.getIdCidadeTreinamento());
+        turma.setNomeCidadeTreinamento(dto.getNomeCidadeTreinamento());
+        turma.setMultiplosInstrutores(dto.getMultiplosInstrutores());
 
         return turma;
     }
@@ -660,5 +901,60 @@ public class CadastroTurmasService {
         }
 
         throw new IllegalArgumentException("Formato de data inválido: " + dateStr);
+    }
+
+    private void atualizarVinculoInstrutor(Long turmaId, Long novoInstrutorId, int tipoVinculo, Turma turma) {
+        // Remover todos os vínculos existentes deste tipo
+        List<TurmaInstrutor> vinculosExistentes = turmaInstrutorRepository
+                .findByTurmaIdAndIdMultiploInstrutor(turmaId, tipoVinculo);
+
+        if (!vinculosExistentes.isEmpty()) {
+            turmaInstrutorRepository.deleteAll(vinculosExistentes);
+        }
+
+        // Criar novo vínculo APENAS se o ID for válido
+        if (novoInstrutorId != null) {
+            Instrutor instrutor = instrutoresRepository.findById(novoInstrutorId)
+                    .orElseThrow(() -> new EntityNotFoundException("Instrutor não encontrado: " + novoInstrutorId));
+
+            TurmaInstrutor novoVinculo = new TurmaInstrutor();
+            novoVinculo.setTurma(turma);
+            novoVinculo.setInstrutor(instrutor);
+            novoVinculo.setIdMultiploInstrutor(tipoVinculo);
+
+            turmaInstrutorRepository.save(novoVinculo);
+        }
+    }
+
+    private void atualizarVinculoInstrutorFormacao(Long turmaId, Long novoInstrutorFormacaoId, int tipoVinculo, Turma turma) {
+        // Buscar associações existentes para este tipo de vínculo
+        List<TurmaInstrutorFormacao> vinculosExistentes = turmaInstrutorFormacaoRepository
+                .findByTurmaIdAndIdMultiploFormacao(turmaId, tipoVinculo); // Nome corrigido
+
+        // Remover vínculos antigos do mesmo tipo
+        if (!vinculosExistentes.isEmpty()) {
+            turmaInstrutorFormacaoRepository.deleteAll(vinculosExistentes);
+        }
+
+        // Verificar se o novo instrutor já está vinculado
+        boolean jaExiste = turmaInstrutorFormacaoRepository
+                .existsByTurmaIdAndInstrutorFormacaoIdAndIdMultiploFormacao( // Nome corrigido
+                        turmaId,
+                        novoInstrutorFormacaoId,
+                        tipoVinculo
+                );
+
+        if (!jaExiste) {
+            InstrutorFormacao instrutorFormacao = instrutorFormacaoRepository
+                    .findById(novoInstrutorFormacaoId)
+                    .orElseThrow(() -> new EntityNotFoundException("Formação não encontrada: " + novoInstrutorFormacaoId));
+
+            TurmaInstrutorFormacao novoVinculo = new TurmaInstrutorFormacao();
+            novoVinculo.setTurma(turma);
+            novoVinculo.setInstrutorFormacao(instrutorFormacao);
+            novoVinculo.setIdMultiploFormacao(tipoVinculo);
+
+            turmaInstrutorFormacaoRepository.save(novoVinculo);
+        }
     }
 }

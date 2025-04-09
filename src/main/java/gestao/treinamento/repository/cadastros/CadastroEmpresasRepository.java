@@ -23,6 +23,11 @@ public interface CadastroEmpresasRepository extends JpaRepository<Empresa, Long>
     }
 
     boolean existsByCpf(String cpf);
-
     boolean existsByCnpj(String cnpj);
+    boolean existsByTelefone(String telefone);
+
+    // Novos métodos para validação na atualização
+    boolean existsByCpfAndIdNot(String cpf, Long id);
+    boolean existsByCnpjAndIdNot(String cnpj, Long id);
+    boolean existsByTelefoneAndIdNot(String telefone, Long id);
 }

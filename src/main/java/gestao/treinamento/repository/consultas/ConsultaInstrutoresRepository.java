@@ -11,6 +11,6 @@ import java.util.List;
 @Repository
 public interface ConsultaInstrutoresRepository extends JpaRepository<Instrutor, Long> {
 
-    @Query("SELECT new gestao.treinamento.model.dto.consultas.InstrutorConsultaDTO(i.id, i.nome, i.cpf) FROM Instrutor i")
+    @Query("SELECT new gestao.treinamento.model.dto.consultas.InstrutorConsultaDTO(i.id, i.nome, i.cpf, i.cnpj) FROM Instrutor i")
     List<InstrutorConsultaDTO> findAllInstrutoresDTO();
 }

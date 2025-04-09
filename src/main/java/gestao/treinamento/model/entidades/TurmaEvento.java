@@ -2,11 +2,13 @@ package gestao.treinamento.model.entidades;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+@EqualsAndHashCode(callSuper = false)
 @Data
 @Entity
 @Table(name = "turma_evento")
-public class TurmaEvento {
+public class TurmaEvento extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

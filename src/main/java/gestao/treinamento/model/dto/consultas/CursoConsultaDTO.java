@@ -11,4 +11,6 @@ public class CursoConsultaDTO {
 
     private Long id;
     private String nome;
+    private String modalidade;
+    private Integer cargaHorariaTotal;
 }

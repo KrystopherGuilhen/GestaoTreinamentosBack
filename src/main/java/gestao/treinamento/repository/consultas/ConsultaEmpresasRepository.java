@@ -11,6 +11,6 @@ import java.util.List;
 @Repository
 public interface ConsultaEmpresasRepository extends JpaRepository<Empresa, Long> {
 
-    @Query("SELECT new gestao.treinamento.model.dto.consultas.EmpresaConsultaDTO(e.id, e.nome, e.cnpj) FROM Empresa e")
+    @Query("SELECT new gestao.treinamento.model.dto.consultas.EmpresaConsultaDTO(e.id, e.nome, e.cnpj, e.cpf) FROM Empresa e")
     List<EmpresaConsultaDTO> findAllEmpresasDTO();
 }

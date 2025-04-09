@@ -2,16 +2,13 @@ package gestao.treinamento.model.entidades;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.ToString;
+import lombok.EqualsAndHashCode;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-
+@EqualsAndHashCode(callSuper = false)
 @Data
 @Entity
 @Table(name = "palestra")
-public class Palestra {
+public class Palestra extends Auditable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -20,20 +17,8 @@ public class Palestra {
     @Column(name = "nome_evento", nullable = false, length = 150)
     private String nomeEvento;
 
-    @Column(name = "cidade_evento", nullable = false, length = 100)
-    private String cidadeEvento;
-
-//    @Column(name = "data_inicio", nullable = false)
-//    private LocalDate dataInicio;
-//
-//    @Column(name = "data_fim", nullable = false)
-//    private LocalDate dataFim;
-
-//    @Column(name = "valor_contrato_crm", nullable = false)
-//    private Double valorContratoCrm;
-
-//    @Column(name = "numero_contrato_crm", nullable = false)
-//    private Integer numeroContratoCrm;
+    @Column(name = "carga_horaria_total", nullable = false)
+    private Integer cargaHorariaTotal;
 
     @Column(name = "conteudo_programatico", nullable = false, columnDefinition = "TEXT")
     private String conteudoProgramatico;
@@ -41,7 +26,4 @@ public class Palestra {
     @Column(name = "observacao", columnDefinition = "TEXT")
     private String observacao;
 
-//    @OneToMany(mappedBy = "palestra", cascade = CascadeType.ALL, orphanRemoval = true)
-//    @ToString.Exclude
-//    private List<PalestraEmpresa> empresasVinculadas = new ArrayList<>();
 }

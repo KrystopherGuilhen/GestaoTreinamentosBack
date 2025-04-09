@@ -20,4 +20,10 @@ public interface ConsultaTrabalhadoresRepository extends JpaRepository<Trabalhad
             "JOIN TrabalhadorEmpresa te ON t.id = te.trabalhador.id " +
             "WHERE te.empresa.id IN :empresaIds")
     List<TrabalhadorConsultaDTO> findAllTrabalhadoresByEmpresaIds(@Param("empresaIds") List<Long> empresaIds);
+
+    @Query("SELECT new gestao.treinamento.model.dto.consultas.TrabalhadorConsultaDTO(t.id, t.nome, t.cpf) " +
+            "FROM Trabalhador t " +
+            "JOIN TurmaTrabalhador tt ON t.id = tt.trabalhador.id " +
+            "WHERE tt.turma.id = :turmaId")
+    List<TrabalhadorConsultaDTO> findAllTrabalhadoresByTurmaId(@Param("turmaId") Long turmaId);
 }

@@ -20,4 +20,6 @@ public interface CadastroPerfilPermissaoCursoRepository extends JpaRepository<Pe
     @Modifying
     @Query("DELETE FROM PerfilPermissaoCurso ppc WHERE ppc.perfil.id = :perfilId AND ppc.permissaoCurso.id IN :permissaoCursoIds")
     void deleteByPerfilIdAndPermissaoCursoIds(@Param("perfilId") Long perfilId, @Param("permissaoCursoIds") List<Long> permissaoCursoIds);
+
+    void deleteByPerfilId(Long perfilId);
 }

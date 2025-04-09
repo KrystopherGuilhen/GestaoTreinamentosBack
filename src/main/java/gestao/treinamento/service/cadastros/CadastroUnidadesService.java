@@ -1,5 +1,6 @@
 package gestao.treinamento.service.cadastros;
 
+import gestao.treinamento.exception.DuplicateException;
 import gestao.treinamento.exception.ResourceNotFoundException;
 import gestao.treinamento.model.dto.cadastros.UnidadeAssinaturaDTO;
 import gestao.treinamento.model.dto.cadastros.UnidadeDTO;
@@ -8,10 +9,11 @@ import gestao.treinamento.repository.cadastros.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
-import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,7 +30,7 @@ public class CadastroUnidadesService {
     private final CadastroUnidadeResponsavelTecnicoRepository unidadeResponsavelTecnicoRepository;
 
     private final CadastroPerfilRepository perfilRepository;
-    private final CadastroUnidadePerfilRepository unidadePerfilRepository;
+    //private final CadastroUnidadePerfilRepository unidadePerfilRepository;
 
 
     // GET: Buscar todos os unidades
@@ -41,6 +43,32 @@ public class CadastroUnidadesService {
     // POST: Criar novo unidade
     @Transactional
     public UnidadeDTO criarUnidade(UnidadeDTO dto) {
+        // Validações obrigatórias
+        if (!StringUtils.hasText(dto.getGerenteResponsavel())) {
+            throw new IllegalArgumentException("Gerente Responsável é obrigatório");
+        }
+        if (!StringUtils.hasText(dto.getRazaoSocial())) {
+            throw new IllegalArgumentException("Razão Social é obrigatória");
+        }
+        if (!StringUtils.hasText(dto.getCnpj())) {
+            throw new IllegalArgumentException("CNPJ é obrigatório");
+        }
+
+        // Validação de CNPJ único
+        if (repository.existsByCnpj(dto.getCnpj())) {
+            throw new DuplicateException("CNPJ já cadastrado: " + dto.getCnpj());
+        }
+
+        // Validação de tamanho dos campos
+        if (dto.getGerenteResponsavel().length() > 100) {
+            throw new IllegalArgumentException("Gerente Responsável deve ter até 100 caracteres");
+        }
+        if (dto.getRazaoSocial().length() > 255) {
+            throw new IllegalArgumentException("Razão Social deve ter até 255 caracteres");
+        }
+        if (dto.getNomeFantasia() != null && dto.getNomeFantasia().length() > 255) {
+            throw new IllegalArgumentException("Nome Fantasia deve ter até 255 caracteres");
+        }
 
         // Converter o DTO para entidade unidade
         Unidade unidade = convertToEntity(dto);
@@ -63,20 +91,20 @@ public class CadastroUnidadesService {
             unidadeResponsavelTecnicoRepository.save(unidadeResponsavelTecnico);
         }
 
-        // Verificar se há um pefil vinculado no DTO
-        if (dto.getIdPerfilVinculo() != null) {
-            // Recuperar o responsavelTecnico pelo ID
-            Perfil perfil = perfilRepository.findById(dto.getIdPerfilVinculo())
-                    .orElseThrow(() -> new RuntimeException("ResponsavelTecnico não encontrado: ID " + dto.getIdPerfilVinculo()));
-
-            // Criar a associação unidade-perfil
-            UnidadePerfil unidadePerfil = new UnidadePerfil();
-            unidadePerfil.setUnidade(unidade);
-            unidadePerfil.setPerfil(perfil);
-
-            // Salvar a associação
-            unidadePerfilRepository.save(unidadePerfil);
-        }
+//        // Verificar se há um pefil vinculado no DTO
+//        if (dto.getIdPerfilVinculo() != null) {
+//            // Recuperar o responsavelTecnico pelo ID
+//            Perfil perfil = perfilRepository.findById(dto.getIdPerfilVinculo())
+//                    .orElseThrow(() -> new RuntimeException("ResponsavelTecnico não encontrado: ID " + dto.getIdPerfilVinculo()));
+//
+//            // Criar a associação unidade-perfil
+//            UnidadePerfil unidadePerfil = new UnidadePerfil();
+//            unidadePerfil.setUnidade(unidade);
+//            unidadePerfil.setPerfil(perfil);
+//
+//            // Salvar a associação
+//            unidadePerfilRepository.save(unidadePerfil);
+//        }
 
         //Retornar o DTO de Unidade criada
         return convertToDTO(unidade);
@@ -88,9 +116,43 @@ public class CadastroUnidadesService {
         Unidade existente = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Unidade não encontrado com ID: " + id));
 
+        // Validações obrigatórias
+        if (!StringUtils.hasText(dto.getGerenteResponsavel())) {
+            throw new IllegalArgumentException("Gerente Responsável é obrigatório");
+        }
+        if (!StringUtils.hasText(dto.getRazaoSocial())) {
+            throw new IllegalArgumentException("Razão Social é obrigatória");
+        }
+
+        // Validação de CNPJ (se foi alterado)
+        if (StringUtils.hasText(dto.getCnpj())) {
+            if (!dto.getCnpj().equals(existente.getCnpj())) {
+                if (repository.existsByCnpjAndIdNot(dto.getCnpj(), id)) {
+                    throw new DuplicateException("CNPJ já cadastrado: " + dto.getCnpj());
+                }
+                existente.setCnpj(dto.getCnpj());
+            }
+        }
+
+        // Validação de tamanho
+        if (dto.getGerenteResponsavel().length() > 100) {
+            throw new IllegalArgumentException("Gerente Responsável deve ter até 100 caracteres");
+        }
+        if (dto.getRazaoSocial().length() > 255) {
+            throw new IllegalArgumentException("Razão Social deve ter até 255 caracteres");
+        }
+        if (dto.getNomeFantasia() != null && dto.getNomeFantasia().length() > 255) {
+            throw new IllegalArgumentException("Nome Fantasia deve ter até 255 caracteres");
+        }
+
+
         existente.setNome(dto.getNome());
         existente.setGerenteResponsavel(dto.getGerenteResponsavel());
-//        existente.setResponsavelTecnico(unidade.getResponsavelTecnico());
+        existente.setRazaoSocial(dto.getRazaoSocial());
+        existente.setNomeFantasia(dto.getNomeFantasia());
+        existente.setCnpj(dto.getCnpj());
+        existente.setEndereco(dto.getEndereco());
+        existente.setCredenciamento(dto.getCredenciamento());
 
         // Atualizar associações com responsavelTecnico
         if (dto.getIdResponsavelTecnicoVinculo() != null) {
@@ -126,37 +188,37 @@ public class CadastroUnidadesService {
         }
 
         // Atualizar associações com perfil
-        if (dto.getIdPerfilVinculo() != null) {
-            // Recuperar as associações existentes (com a chave composta idUnidade e idPerfil)
-            List<Long> idsPerfilsVinculadas = unidadePerfilRepository.findPerfilByUnidadeId(id);
-
-            // Verificar se o perfil atual está na lista de associações
-            Long idPerfilVinculo = dto.getIdPerfilVinculo();
-
-            // Remover associações que não correspondem ao novo responsavelTecnico vinculado
-            List<Long> idsParaRemover = idsPerfilsVinculadas.stream()
-                    .filter(idResponsavelTecnico -> !idResponsavelTecnico.equals(idPerfilVinculo))
-                    .toList();
-            if (!idsParaRemover.isEmpty()) {
-                unidadePerfilRepository.deleteByUnidadeIdAndPerfilIds(id, idsParaRemover);
-            }
-
-            // Verificar se o responsavelTecnico já está associado
-            boolean existe = unidadePerfilRepository.existsByUnidadeIdAndPerfilId(id, idPerfilVinculo);
-            if (!existe) {
-                // Recuperar o responsavelTecnico pelo ID
-                Perfil perfil = perfilRepository.findById(idPerfilVinculo)
-                        .orElseThrow(() -> new EntityNotFoundException("ResponsavelTecnico com ID " + idPerfilVinculo + " não encontrado"));
-
-                // Criar a nova associação
-                UnidadePerfil novaAssociacao = new UnidadePerfil();
-                novaAssociacao.setUnidade(existente);
-                novaAssociacao.setPerfil(perfil);
-
-                // Salvar a nova associação
-                unidadePerfilRepository.save(novaAssociacao);
-            }
-        }
+//        if (dto.getIdPerfilVinculo() != null) {
+//            // Recuperar as associações existentes (com a chave composta idUnidade e idPerfil)
+//            List<Long> idsPerfilsVinculadas = unidadePerfilRepository.findPerfilByUnidadeId(id);
+//
+//            // Verificar se o perfil atual está na lista de associações
+//            Long idPerfilVinculo = dto.getIdPerfilVinculo();
+//
+//            // Remover associações que não correspondem ao novo responsavelTecnico vinculado
+//            List<Long> idsParaRemover = idsPerfilsVinculadas.stream()
+//                    .filter(idResponsavelTecnico -> !idResponsavelTecnico.equals(idPerfilVinculo))
+//                    .toList();
+//            if (!idsParaRemover.isEmpty()) {
+//                unidadePerfilRepository.deleteByUnidadeIdAndPerfilIds(id, idsParaRemover);
+//            }
+//
+//            // Verificar se o responsavelTecnico já está associado
+//            boolean existe = unidadePerfilRepository.existsByUnidadeIdAndPerfilId(id, idPerfilVinculo);
+//            if (!existe) {
+//                // Recuperar o responsavelTecnico pelo ID
+//                Perfil perfil = perfilRepository.findById(idPerfilVinculo)
+//                        .orElseThrow(() -> new EntityNotFoundException("ResponsavelTecnico com ID " + idPerfilVinculo + " não encontrado"));
+//
+//                // Criar a nova associação
+//                UnidadePerfil novaAssociacao = new UnidadePerfil();
+//                novaAssociacao.setUnidade(existente);
+//                novaAssociacao.setPerfil(perfil);
+//
+//                // Salvar a nova associação
+//                unidadePerfilRepository.save(novaAssociacao);
+//            }
+//        }
 
         // 1. Atualizar assinatura (estratégia de substituição completa)
         if (dto.getAssinatura() != null) {
@@ -193,27 +255,39 @@ public class CadastroUnidadesService {
 
     public void deletarUnidade(Long id) {
         if (!repository.existsById(id)) {
-            throw new ResourceNotFoundException("Unidade não encontrado com ID: " + id);
+            throw new ResourceNotFoundException("Unidade com ID " + id + " não encontrado");
         }
-        repository.deleteById(id);
+        try {
+            repository.deleteById(id);
+        } catch (DataIntegrityViolationException e) {
+            throw new IllegalStateException("Unidade não pode ser excluída pois está vinculada a outro cadastro");
+        }
     }
 
     public void deletarUnidades(List<Long> ids) {
         List<Unidade> unidades = repository.findAllById(ids);
-        if (unidades.size() != ids.size()) {
-            throw new ResourceNotFoundException("Um ou mais IDs não foram encontrados.");
+        if (unidades.isEmpty()) {
+            throw new EntityNotFoundException("Nenhuma unidade encontrado para os IDs fornecidos");
         }
-        repository.deleteAll(unidades);
+        try {
+            repository.deleteAll(unidades);
+        } catch (DataIntegrityViolationException e) {
+            throw new IllegalStateException("Uma ou mais unidades não podem ser excluídas pois estão vinculadas a outros cadastros.");
+        }
     }
 
     // Método auxiliar: Converter entidade para DTO
     private UnidadeDTO convertToDTO(Unidade unidade) {
         UnidadeDTO dto = new UnidadeDTO();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
         dto.setId(unidade.getId());
         dto.setNome(unidade.getNome());
         dto.setGerenteResponsavel(unidade.getGerenteResponsavel());
+        dto.setRazaoSocial(unidade.getRazaoSocial());
+        dto.setNomeFantasia(unidade.getNomeFantasia());
+        dto.setCnpj(unidade.getCnpj());
+        dto.setEndereco(unidade.getEndereco());
+        dto.setCredenciamento(unidade.getCredenciamento());
 
         // Extrai o ID e nome do responsavelTecnico vinculado (único)
         if (unidade.getUnidadeResponsavelTecnicosVinculados() != null && !unidade.getUnidadeResponsavelTecnicosVinculados().isEmpty()) {
@@ -241,9 +315,8 @@ public class CadastroUnidadesService {
                         assDTO.setType(assinatura.getType());
                         assDTO.setSize(assinatura.getSize());
 
-                        // Gerar Data URI para o front
-                        assDTO.setBase64("data:" + assinatura.getMimeType() + ";base64," +
-                                Base64.getEncoder().encodeToString(assinatura.getDados()));
+                        // Apenas o Base64, sem o prefixo "data:"
+                        assDTO.setBase64(Base64.getEncoder().encodeToString(assinatura.getDados()));
 
                         // ObjectURL geralmente não é persistido, mas se necessário:
                         assDTO.setObjectURL(assinatura.getObjectURL());
@@ -262,6 +335,11 @@ public class CadastroUnidadesService {
         Unidade unidade = new Unidade();
         unidade.setNome(dto.getNome());
         unidade.setGerenteResponsavel(dto.getGerenteResponsavel());
+        unidade.setRazaoSocial(dto.getRazaoSocial());
+        unidade.setNomeFantasia(dto.getNomeFantasia());
+        unidade.setCnpj(dto.getCnpj());
+        unidade.setEndereco(dto.getEndereco());
+        unidade.setCredenciamento(dto.getCredenciamento());
 
         // Processar assinatura (DTO → Entidade)
         if (dto.getAssinatura() != null) {

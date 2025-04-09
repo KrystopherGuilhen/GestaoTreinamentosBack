@@ -2,15 +2,22 @@ package gestao.treinamento.model.entidades;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
+@EqualsAndHashCode(callSuper = false)
 @Data
 @Entity
 @Table(name = "perfil")
-public class Perfil {
+public class Perfil  extends Auditable implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,6 +26,12 @@ public class Perfil {
 
     @Column(name = "nome", nullable = false, length = 150)
     private String nome;
+
+    @Column(name = "email", nullable = false, unique = true)
+    private String email;
+
+    @Column(name = "senha", nullable = false)
+    private String senha;
 
     @OneToMany(mappedBy = "perfil", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
@@ -63,4 +76,41 @@ public class Perfil {
     @OneToMany(mappedBy = "perfil", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
     private List<PerfilPermissaoInstrutor> perfilPermissaoInstrutores = new ArrayList<>();
+
+    // Métodos do UserDetails
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        // Implemente suas autoridades/roles baseado nas permissões do perfil
+        return Collections.emptyList(); // Adapte conforme suas regras
+    }
+
+    @Override
+    public String getPassword() {
+        return this.senha;
+    }
+
+    @Override
+    public String getUsername() {
+        return this.email;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
 }

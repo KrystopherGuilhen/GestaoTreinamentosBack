@@ -11,6 +11,6 @@ import java.util.List;
 @NoArgsConstructor
 public class InstrutorFormacaoConsultaDTO {
 
-    private Long instrutorId;
-    private List<InstrutorFormacaoConsultaListaDTO> formacao;
+    private Long id;
+    private String nome;
 }

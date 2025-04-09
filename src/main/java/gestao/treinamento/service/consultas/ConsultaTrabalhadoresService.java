@@ -22,4 +22,8 @@ public class ConsultaTrabalhadoresService {
     public List<TrabalhadorConsultaDTO> consultaPorEmpresas(List<Long> empresaIds) {
         return repository.findAllTrabalhadoresByEmpresaIds(empresaIds);
     }
+
+    public List<TrabalhadorConsultaDTO> consultaPorTurma(Long turmaId) {
+        return repository.findAllTrabalhadoresByTurmaId(turmaId);
+    }
 }

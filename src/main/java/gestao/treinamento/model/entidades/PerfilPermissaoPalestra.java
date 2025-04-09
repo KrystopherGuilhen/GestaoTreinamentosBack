@@ -2,11 +2,13 @@ package gestao.treinamento.model.entidades;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+@EqualsAndHashCode(callSuper = false)
 @Data
 @Entity
 @Table(name = "perfil_permissao_palestra")
-public class PerfilPermissaoPalestra {
+public class PerfilPermissaoPalestra extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

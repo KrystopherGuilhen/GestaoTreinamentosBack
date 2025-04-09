@@ -1,5 +1,6 @@
 package gestao.treinamento.service.cadastros;
 
+import gestao.treinamento.exception.ResourceNotFoundException;
 import gestao.treinamento.model.dto.cadastros.CursoDTO;
 import gestao.treinamento.model.entidades.Curso;
 import gestao.treinamento.model.entidades.CursoModalidade;
@@ -10,6 +11,7 @@ import gestao.treinamento.repository.cadastros.CadastroModalidadesRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -162,20 +164,26 @@ public class CadastroCursosService {
     // DELETE: Excluir Curso por ID
     public void excluirCurso(Long id) {
         if (!repository.existsById(id)) {
-            throw new EntityNotFoundException("Curso com ID " + id + " não encontrado");
+            throw new ResourceNotFoundException("Curso não encontrado com ID: " + id);
         }
-        repository.deleteById(id);
+        try {
+            repository.deleteById(id);
+        } catch (DataIntegrityViolationException e) {
+            throw new IllegalStateException("O Curso não pode ser excluído pois está vinculao a outro cadastro.");
+        }
     }
 
     // DELETE: Excluir múltiplos Cursos por lista de IDs
     public void excluirCursos(List<Long> ids) {
         List<Curso> cursos = repository.findAllById(ids);
-
         if (cursos.isEmpty()) {
             throw new EntityNotFoundException("Nenhum Curso encontrado para os IDs fornecidos");
         }
-
-        repository.deleteAll(cursos);
+        try {
+            repository.deleteAll(cursos);
+        } catch (DataIntegrityViolationException e) {
+            throw new IllegalStateException("Uma ou mais cursos não podem ser excluídos pois estão vinculados a outros cadastros.");
+        }
     }
 
     // Método auxiliar: Converter entidade para DTO

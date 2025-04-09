@@ -14,7 +14,7 @@ public class ResponsavelTecnicoDTO {
     private Long id;
     private String nome;
     private String cpf;
-    private Integer numeroConselho;
+    private String numeroConselho;
 
     private List<ResponsavelTecnicoAssinaturaDTO> assinatura;
 

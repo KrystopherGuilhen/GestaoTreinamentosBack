@@ -1,5 +1,7 @@
 package gestao.treinamento.service.cadastros;
 
+import gestao.treinamento.exception.DuplicateException;
+import gestao.treinamento.exception.ResourceNotFoundException;
 import gestao.treinamento.model.dto.cadastros.ResponsavelTecnicoAssinaturaDTO;
 import gestao.treinamento.model.dto.cadastros.ResponsavelTecnicoDTO;
 import gestao.treinamento.model.entidades.ResponsavelTecnico;
@@ -9,6 +11,7 @@ import gestao.treinamento.repository.cadastros.CadastroResponsavelTecnicoReposit
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +37,11 @@ public class CadastroResponsavelTecnicoService {
     // POST: Criar novo ResponsavelTecnico
     @Transactional
     public ResponsavelTecnicoDTO criarResponsavelTecnico(ResponsavelTecnicoDTO dto) {
+        // Validação de CPF único
+        if (repository.existsByCpf(dto.getCpf())) {
+            throw new DuplicateException("O CPF " + dto.getCpf() + " já existe nos registros.");
+        }
+
         // Converter o DTO para entidade ResponsavelTecnico
         ResponsavelTecnico responsavelTecnico = convertToEntity(dto);
 
@@ -50,6 +58,12 @@ public class CadastroResponsavelTecnicoService {
     public ResponsavelTecnicoDTO atualizarResponsavelTecnico(Long id, ResponsavelTecnicoDTO dto) {
         ResponsavelTecnico existente = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("ResponsavelTecnico com ID " + id + " não encontrado"));
+
+        if (!existente.getCpf().equals(dto.getCpf())) {
+            if (repository.existsByCpf(dto.getCpf())) {
+                throw new DuplicateException("O CPF " + dto.getCpf() + " já existe nos registros.");
+            }
+        }
 
         existente.setNome(dto.getNome());
         existente.setCpf(dto.getCpf());
@@ -91,20 +105,26 @@ public class CadastroResponsavelTecnicoService {
     // DELETE: Excluir ResponsavelTecnico por ID
     public void deletarResponsavelTecnico(Long id) {
         if (!repository.existsById(id)) {
-            throw new EntityNotFoundException("ResponsavelTecnico com ID " + id + " não encontrado");
+            throw new ResourceNotFoundException("Responsável Técnico com ID " + id + " não encontrado");
         }
-        repository.deleteById(id);
+        try {
+            repository.deleteById(id);
+        } catch (DataIntegrityViolationException e) {
+            throw new IllegalStateException("Responsável Técnico não pode ser excluído pois está vinculado a outro cadastro");
+        }
     }
 
-    // DELETE: Excluir múltiplos ResponsavelTecnicos por lista de IDs
+    // DELETE: Excluir múltiplos ResponsavelTecnicos
     public void deletarResponsavelTecnicos(List<Long> ids) {
         List<ResponsavelTecnico> responsavelTecnicos = repository.findAllById(ids);
-
         if (responsavelTecnicos.isEmpty()) {
-            throw new EntityNotFoundException("Nenhum ResponsavelTecnico encontrado para os IDs fornecidos");
+            throw new EntityNotFoundException("Nenhum responsável técnico encontrado para os IDs fornecidos");
         }
-
-        repository.deleteAll(responsavelTecnicos);
+        try {
+            repository.deleteAll(responsavelTecnicos);
+        } catch (DataIntegrityViolationException e) {
+            throw new IllegalStateException("Um ou mais responsáveis técnicos não podem ser excluídos pois estão vinculados a outros cadastros.");
+        }
     }
 
     // Método auxiliar: Converter entidade para DTO
@@ -128,9 +148,8 @@ public class CadastroResponsavelTecnicoService {
                         assDTO.setType(assinatura.getType());
                         assDTO.setSize(assinatura.getSize());
 
-                        // Gerar Data URI para o front
-                        assDTO.setBase64("data:" + assinatura.getMimeType() + ";base64," +
-                                Base64.getEncoder().encodeToString(assinatura.getDados()));
+                        // Apenas o Base64, sem o prefixo "data:"
+                        assDTO.setBase64(Base64.getEncoder().encodeToString(assinatura.getDados()));
 
                         // ObjectURL geralmente não é persistido, mas se necessário:
                         assDTO.setObjectURL(assinatura.getObjectURL());

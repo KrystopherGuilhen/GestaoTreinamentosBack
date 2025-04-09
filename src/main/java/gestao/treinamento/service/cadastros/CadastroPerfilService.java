@@ -7,6 +7,7 @@ import gestao.treinamento.repository.cadastros.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,6 +56,8 @@ public class CadastroPerfilService {
 
 //    private final CadastroNivelVisibilidadeRepository nivelVisibilidadeRepository;
 //    private final CadastroPerfilNivelVisibilidadeRepository perfilNivelVisibilidadeRepository;
+
+    private final PasswordEncoder passwordEncoder;
 
     // GET: Buscar todos os perfils
     public List<PerfilDTO> consultaCadastro() {
@@ -253,34 +256,6 @@ public class CadastroPerfilService {
             }
         }
 
-
-        // Processar as permissões (antigo)
-//        if (dto.getPerfilNivelPermissaoDTO() != null) {
-//            for (PerfilNivelPermissaoDTO nivelPermissaoDTO : dto.getPerfilNivelPermissaoDTO()) {
-//                NivelPermissao nivelPermissao = nivelPermissaoRepository.findById(nivelPermissaoDTO.getIdPermissao())
-//                        .orElseThrow(() -> new RuntimeException("NivelPermissao não encontrado: ID " + nivelPermissaoDTO.getNomePermissao()));
-//
-//                PerfilNivelPermissao perfilNivelPermissao = new PerfilNivelPermissao();
-//                perfilNivelPermissao.setPerfil(perfil);
-//                perfilNivelPermissao.setNivelPermissao(nivelPermissao);
-//                perfilNivelPermissaoRepository.save(perfilNivelPermissao);
-//
-//                // Processar as visibilidades
-//                if (nivelPermissaoDTO.getPerfilNivelVisibilidadeDTO() != null) {
-//                    for (PerfilNivelVisibilidadeDTO visibilidadeDTO : nivelPermissaoDTO.getPerfilNivelVisibilidadeDTO()) {
-//                        NivelVisibilidade nivelVisibilidade = nivelVisibilidadeRepository.findById(visibilidadeDTO.getIdVisibilidade())
-//                                .orElseThrow(() -> new RuntimeException("NivelVisibilidade não encontrado: ID " + visibilidadeDTO.getIdVisibilidade()));
-//
-//                        PerfilNivelVisibilidade perfilNivelVisibilidade = new PerfilNivelVisibilidade();
-//                        perfilNivelVisibilidade.setPerfil(perfil);
-//                        perfilNivelVisibilidade.setNivelVisibilidade(nivelVisibilidade);
-//                        perfilNivelVisibilidade.setNivelPermissao(nivelPermissao);
-//                        perfilNivelVisibilidadeRepository.save(perfilNivelVisibilidade);
-//                    }
-//                }
-//            }
-//        }
-
         return convertToDTO(perfil);
     }
 
@@ -292,6 +267,10 @@ public class CadastroPerfilService {
                 .orElseThrow(() -> new ResourceNotFoundException("Perfil não encontrado com ID: " + id));
 
         existente.setNome(dto.getNome());
+        existente.setEmail(dto.getEmail());
+        if (dto.getSenha() != null && !dto.getSenha().isEmpty()) {
+            existente.setSenha(passwordEncoder.encode(dto.getSenha())); // Atualiza a senha se fornecida
+        }
 
         // Atualizar associações com unidade
         if (dto.getIdUnidadeVinculo() != null) {
@@ -342,7 +321,7 @@ public class CadastroPerfilService {
                 boolean existe = perfilNivelPermissaoRepository.existsByPerfilIdAndNivelPermissaoId(id, idNivelPermissao);
                 if (!existe) {
                     NivelPermissao NivelPermissao = nivelPermissaoRepository.findById(idNivelPermissao)
-                            .orElseThrow(() -> new EntityNotFoundException("Permissao com ID " + idNivelPermissao + " não encontrada"));
+                            .orElseThrow(() -> new EntityNotFoundException("Permissão com ID " + idNivelPermissao + " não encontrada"));
 
                     PerfilNivelPermissao novaAssociacao = new PerfilNivelPermissao();
                     novaAssociacao.setPerfil(existente);
@@ -355,22 +334,22 @@ public class CadastroPerfilService {
         }
 
         // Atualizar associações com PermissaoCursos
-        if (dto.getIdPermissaoPerfilVinculo() != null) {
+        if (dto.getIdPermissaoVinculo() != null) {
             // Recuperar as associações existentes (com a chave composta idTurma e idPermissaoCurso)
             List<Long> idsPermissaoCursosVinculadas = perfilPermissaoCursoRepository.findPermissaoCursoByPerfilId(id);
 
             // Remover associações que não estão mais na lista
             List<Long> idsParaRemover = idsPermissaoCursosVinculadas.stream()
-                    .filter(idPermissaoCurso -> !dto.getIdPermissaoVinculo().contains(idPermissaoCurso))
+                    .filter(idPermissaoCurso -> !dto.getIdPermissaoCursoVinculo().contains(idPermissaoCurso))
                     .toList();
             perfilPermissaoCursoRepository.deleteByPerfilIdAndPermissaoCursoIds(id, idsParaRemover);
 
             // Adicionar novas associações (para cada PermissaoCurso que não existe na tabela)
-            for (Long idPermissaoCurso : dto.getIdPermissaoVinculo()) {
+            for (Long idPermissaoCurso : dto.getIdPermissaoCursoVinculo()) {
                 boolean existe = perfilPermissaoCursoRepository.existsByPerfilIdAndPermissaoCursoId(id, idPermissaoCurso);
                 if (!existe) {
                     PermissaoCurso PermissaoCurso = permissaoCursoRespository.findById(idPermissaoCurso)
-                            .orElseThrow(() -> new EntityNotFoundException("Curso com ID " + idPermissaoCurso + " não encontrada"));
+                            .orElseThrow(() -> new EntityNotFoundException("Permissão com ID " + idPermissaoCurso + " não encontrada"));
 
                     PerfilPermissaoCurso novaAssociacao = new PerfilPermissaoCurso();
                     novaAssociacao.setPerfil(existente);
@@ -380,25 +359,28 @@ public class CadastroPerfilService {
                     perfilPermissaoCursoRepository.save(novaAssociacao);
                 }
             }
+        } else {
+            // Se getIdPermissaoPerfilVinculo estiver vazio ou nulo, deletar todas as permissões associadas
+            perfilPermissaoCursoRepository.deleteByPerfilId(id);
         }
 
         // Atualizar associações com PermissaoEmpresas
-        if (dto.getIdPermissaoPerfilVinculo() != null) {
+        if (dto.getIdPermissaoEmpresaVinculo() != null) {
             // Recuperar as associações existentes (com a chave composta idTurma e idPermissaoEmpresa)
             List<Long> idsPermissaoEmpresasVinculadas = perfilPermissaoEmpresaRepository.findPermissaoEmpresaByPerfilId(id);
 
             // Remover associações que não estão mais na lista
             List<Long> idsParaRemover = idsPermissaoEmpresasVinculadas.stream()
-                    .filter(idPermissaoEmpresa -> !dto.getIdPermissaoVinculo().contains(idPermissaoEmpresa))
+                    .filter(idPermissaoEmpresa -> !dto.getIdPermissaoEmpresaVinculo().contains(idPermissaoEmpresa))
                     .toList();
             perfilPermissaoEmpresaRepository.deleteByPerfilIdAndPermissaoEmpresaIds(id, idsParaRemover);
 
             // Adicionar novas associações (para cada PermissaoEmpresa que não existe na tabela)
-            for (Long idPermissaoEmpresa : dto.getIdPermissaoVinculo()) {
+            for (Long idPermissaoEmpresa : dto.getIdPermissaoEmpresaVinculo()) {
                 boolean existe = perfilPermissaoEmpresaRepository.existsByPerfilIdAndPermissaoEmpresaId(id, idPermissaoEmpresa);
                 if (!existe) {
                     PermissaoEmpresa PermissaoEmpresa = permissaoEmpresaRespository.findById(idPermissaoEmpresa)
-                            .orElseThrow(() -> new EntityNotFoundException("Empresa com ID " + idPermissaoEmpresa + " não encontrada"));
+                            .orElseThrow(() -> new EntityNotFoundException("Permissão com ID " + idPermissaoEmpresa + " não encontrada"));
 
                     PerfilPermissaoEmpresa novaAssociacao = new PerfilPermissaoEmpresa();
                     novaAssociacao.setPerfil(existente);
@@ -411,22 +393,22 @@ public class CadastroPerfilService {
         }
 
         // Atualizar associações com PermissaoResponsavelTecnicos
-        if (dto.getIdPermissaoPerfilVinculo() != null) {
+        if (dto.getIdPermissaoResponsavelTecnicoVinculo() != null) {
             // Recuperar as associações existentes (com a chave composta idTurma e idPermissaoResponsavelTecnico)
             List<Long> idsPermissaoResponsavelTecnicosVinculadas = perfilPermissaoResponsavelTecnicoRepository.findPermissaoResponsavelTecnicoByPerfilId(id);
 
             // Remover associações que não estão mais na lista
             List<Long> idsParaRemover = idsPermissaoResponsavelTecnicosVinculadas.stream()
-                    .filter(idPermissaoResponsavelTecnico -> !dto.getIdPermissaoVinculo().contains(idPermissaoResponsavelTecnico))
+                    .filter(idPermissaoResponsavelTecnico -> !dto.getIdPermissaoResponsavelTecnicoVinculo().contains(idPermissaoResponsavelTecnico))
                     .toList();
             perfilPermissaoResponsavelTecnicoRepository.deleteByPerfilIdAndPermissaoResponsavelTecnicoIds(id, idsParaRemover);
 
             // Adicionar novas associações (para cada PermissaoResponsavelTecnico que não existe na tabela)
-            for (Long idPermissaoResponsavelTecnico : dto.getIdPermissaoVinculo()) {
+            for (Long idPermissaoResponsavelTecnico : dto.getIdPermissaoResponsavelTecnicoVinculo()) {
                 boolean existe = perfilPermissaoResponsavelTecnicoRepository.existsByPerfilIdAndPermissaoResponsavelTecnicoId(id, idPermissaoResponsavelTecnico);
                 if (!existe) {
                     PermissaoResponsavelTecnico PermissaoResponsavelTecnico = permissaoResponsavelTecnicoRespository.findById(idPermissaoResponsavelTecnico)
-                            .orElseThrow(() -> new EntityNotFoundException("ResponsavelTecnico com ID " + idPermissaoResponsavelTecnico + " não encontrada"));
+                            .orElseThrow(() -> new EntityNotFoundException("Permissão com ID " + idPermissaoResponsavelTecnico + " não encontrada"));
 
                     PerfilPermissaoResponsavelTecnico novaAssociacao = new PerfilPermissaoResponsavelTecnico();
                     novaAssociacao.setPerfil(existente);
@@ -439,22 +421,22 @@ public class CadastroPerfilService {
         }
 
         // Atualizar associações com PermissaoUnidades
-        if (dto.getIdPermissaoPerfilVinculo() != null) {
+        if (dto.getIdPermissaoUnidadeVinculo() != null) {
             // Recuperar as associações existentes (com a chave composta idTurma e idPermissaoUnidade)
             List<Long> idsPermissaoUnidadesVinculadas = perfilPermissaoUnidadeRepository.findPermissaoUnidadeByPerfilId(id);
 
             // Remover associações que não estão mais na lista
             List<Long> idsParaRemover = idsPermissaoUnidadesVinculadas.stream()
-                    .filter(idPermissaoUnidade -> !dto.getIdPermissaoVinculo().contains(idPermissaoUnidade))
+                    .filter(idPermissaoUnidade -> !dto.getIdPermissaoUnidadeVinculo().contains(idPermissaoUnidade))
                     .toList();
             perfilPermissaoUnidadeRepository.deleteByPerfilIdAndPermissaoUnidadeIds(id, idsParaRemover);
 
             // Adicionar novas associações (para cada PermissaoUnidade que não existe na tabela)
-            for (Long idPermissaoUnidade : dto.getIdPermissaoVinculo()) {
+            for (Long idPermissaoUnidade : dto.getIdPermissaoUnidadeVinculo()) {
                 boolean existe = perfilPermissaoUnidadeRepository.existsByPerfilIdAndPermissaoUnidadeId(id, idPermissaoUnidade);
                 if (!existe) {
                     PermissaoUnidade PermissaoUnidade = permissaoUnidadeRespository.findById(idPermissaoUnidade)
-                            .orElseThrow(() -> new EntityNotFoundException("Unidade com ID " + idPermissaoUnidade + " não encontrada"));
+                            .orElseThrow(() -> new EntityNotFoundException("Permissão com ID " + idPermissaoUnidade + " não encontrada"));
 
                     PerfilPermissaoUnidade novaAssociacao = new PerfilPermissaoUnidade();
                     novaAssociacao.setPerfil(existente);
@@ -467,22 +449,22 @@ public class CadastroPerfilService {
         }
 
         // Atualizar associações com PermissaoTrabalhadors
-        if (dto.getIdPermissaoPerfilVinculo() != null) {
+        if (dto.getIdPermissaoTrabalhadorVinculo() != null) {
             // Recuperar as associações existentes (com a chave composta idTurma e idPermissaoTrabalhador)
             List<Long> idsPermissaoTrabalhadorsVinculadas = perfilPermissaoTrabalhadorRepository.findPermissaoTrabalhadorByPerfilId(id);
 
             // Remover associações que não estão mais na lista
             List<Long> idsParaRemover = idsPermissaoTrabalhadorsVinculadas.stream()
-                    .filter(idPermissaoTrabalhador -> !dto.getIdPermissaoVinculo().contains(idPermissaoTrabalhador))
+                    .filter(idPermissaoTrabalhador -> !dto.getIdPermissaoTrabalhadorVinculo().contains(idPermissaoTrabalhador))
                     .toList();
             perfilPermissaoTrabalhadorRepository.deleteByPerfilIdAndPermissaoTrabalhadorIds(id, idsParaRemover);
 
             // Adicionar novas associações (para cada PermissaoTrabalhador que não existe na tabela)
-            for (Long idPermissaoTrabalhador : dto.getIdPermissaoVinculo()) {
+            for (Long idPermissaoTrabalhador : dto.getIdPermissaoTrabalhadorVinculo()) {
                 boolean existe = perfilPermissaoTrabalhadorRepository.existsByPerfilIdAndPermissaoTrabalhadorId(id, idPermissaoTrabalhador);
                 if (!existe) {
                     PermissaoTrabalhador PermissaoTrabalhador = permissaoTrabalhadorRespository.findById(idPermissaoTrabalhador)
-                            .orElseThrow(() -> new EntityNotFoundException("Trabalhador com ID " + idPermissaoTrabalhador + " não encontrada"));
+                            .orElseThrow(() -> new EntityNotFoundException("Permissão com ID " + idPermissaoTrabalhador + " não encontrada"));
 
                     PerfilPermissaoTrabalhador novaAssociacao = new PerfilPermissaoTrabalhador();
                     novaAssociacao.setPerfil(existente);
@@ -495,22 +477,22 @@ public class CadastroPerfilService {
         }
 
         // Atualizar associações com PermissaoPalestras
-        if (dto.getIdPermissaoPerfilVinculo() != null) {
+        if (dto.getIdPermissaoPalestraVinculo() != null) {
             // Recuperar as associações existentes (com a chave composta idTurma e idPermissaoPalestra)
             List<Long> idsPermissaoPalestrasVinculadas = perfilPermissaoPalestraRepository.findPermissaoPalestraByPerfilId(id);
 
             // Remover associações que não estão mais na lista
             List<Long> idsParaRemover = idsPermissaoPalestrasVinculadas.stream()
-                    .filter(idPermissaoPalestra -> !dto.getIdPermissaoVinculo().contains(idPermissaoPalestra))
+                    .filter(idPermissaoPalestra -> !dto.getIdPermissaoPalestraVinculo().contains(idPermissaoPalestra))
                     .toList();
             perfilPermissaoPalestraRepository.deleteByPerfilIdAndPermissaoPalestraIds(id, idsParaRemover);
 
             // Adicionar novas associações (para cada PermissaoPalestra que não existe na tabela)
-            for (Long idPermissaoPalestra : dto.getIdPermissaoVinculo()) {
+            for (Long idPermissaoPalestra : dto.getIdPermissaoPalestraVinculo()) {
                 boolean existe = perfilPermissaoPalestraRepository.existsByPerfilIdAndPermissaoPalestraId(id, idPermissaoPalestra);
                 if (!existe) {
                     PermissaoPalestra PermissaoPalestra = permissaoPalestraRespository.findById(idPermissaoPalestra)
-                            .orElseThrow(() -> new EntityNotFoundException("Palestra com ID " + idPermissaoPalestra + " não encontrada"));
+                            .orElseThrow(() -> new EntityNotFoundException("Permissão com ID " + idPermissaoPalestra + " não encontrada"));
 
                     PerfilPermissaoPalestra novaAssociacao = new PerfilPermissaoPalestra();
                     novaAssociacao.setPerfil(existente);
@@ -523,22 +505,22 @@ public class CadastroPerfilService {
         }
 
         // Atualizar associações com PermissaoTurmas
-        if (dto.getIdPermissaoPerfilVinculo() != null) {
+        if (dto.getIdPermissaoTurmaVinculo() != null) {
             // Recuperar as associações existentes (com a chave composta idTurma e idPermissaoTurma)
             List<Long> idsPermissaoTurmasVinculadas = perfilPermissaoTurmaRepository.findPermissaoTurmaByPerfilId(id);
 
             // Remover associações que não estão mais na lista
             List<Long> idsParaRemover = idsPermissaoTurmasVinculadas.stream()
-                    .filter(idPermissaoTurma -> !dto.getIdPermissaoVinculo().contains(idPermissaoTurma))
+                    .filter(idPermissaoTurma -> !dto.getIdPermissaoTurmaVinculo().contains(idPermissaoTurma))
                     .toList();
             perfilPermissaoTurmaRepository.deleteByPerfilIdAndPermissaoTurmaIds(id, idsParaRemover);
 
             // Adicionar novas associações (para cada PermissaoTurma que não existe na tabela)
-            for (Long idPermissaoTurma : dto.getIdPermissaoVinculo()) {
+            for (Long idPermissaoTurma : dto.getIdPermissaoTurmaVinculo()) {
                 boolean existe = perfilPermissaoTurmaRepository.existsByPerfilIdAndPermissaoTurmaId(id, idPermissaoTurma);
                 if (!existe) {
                     PermissaoTurma PermissaoTurma = permissaoTurmaRespository.findById(idPermissaoTurma)
-                            .orElseThrow(() -> new EntityNotFoundException("Turma com ID " + idPermissaoTurma + " não encontrada"));
+                            .orElseThrow(() -> new EntityNotFoundException("Permissão com ID " + idPermissaoTurma + " não encontrada"));
 
                     PerfilPermissaoTurma novaAssociacao = new PerfilPermissaoTurma();
                     novaAssociacao.setPerfil(existente);
@@ -557,16 +539,16 @@ public class CadastroPerfilService {
 
             // Remover associações que não estão mais na lista
             List<Long> idsParaRemover = idsPermissaoPerfilsVinculadas.stream()
-                    .filter(idPermissaoPerfil -> !dto.getIdPermissaoVinculo().contains(idPermissaoPerfil))
+                    .filter(idPermissaoPerfil -> !dto.getIdPermissaoPerfilVinculo().contains(idPermissaoPerfil))
                     .toList();
             perfilPermissaoPerfilRepository.deleteByPerfilIdAndPermissaoPerfilIds(id, idsParaRemover);
 
             // Adicionar novas associações (para cada PermissaoPerfil que não existe na tabela)
-            for (Long idPermissaoPerfil : dto.getIdPermissaoVinculo()) {
+            for (Long idPermissaoPerfil : dto.getIdPermissaoPerfilVinculo()) {
                 boolean existe = perfilPermissaoPerfilRepository.existsByPerfilIdAndPermissaoPerfilId(id, idPermissaoPerfil);
                 if (!existe) {
                     PermissaoPerfil PermissaoPerfil = permissaoPerfilRespository.findById(idPermissaoPerfil)
-                            .orElseThrow(() -> new EntityNotFoundException("Perfil com ID " + idPermissaoPerfil + " não encontrada"));
+                            .orElseThrow(() -> new EntityNotFoundException("Permissão com ID " + idPermissaoPerfil + " não encontrada"));
 
                     PerfilPermissaoPerfil novaAssociacao = new PerfilPermissaoPerfil();
                     novaAssociacao.setPerfil(existente);
@@ -576,25 +558,28 @@ public class CadastroPerfilService {
                     perfilPermissaoPerfilRepository.save(novaAssociacao);
                 }
             }
+        } else {
+            // Se getIdPermissaoPerfilVinculo estiver vazio ou nulo, deletar todas as permissões associadas
+            perfilPermissaoPerfilRepository.deleteByPerfilId(id);
         }
 
         // Atualizar associações com PermissaoInstrutors
-        if (dto.getIdPermissaoPerfilVinculo() != null) {
+        if (dto.getIdPermissaoInstrutorVinculo() != null) {
             // Recuperar as associações existentes (com a chave composta idTurma e idPermissaoInstrutor)
             List<Long> idsPermissaoInstrutorsVinculadas = perfilPermissaoInstrutorRepository.findPermissaoInstrutorByPerfilId(id);
 
             // Remover associações que não estão mais na lista
             List<Long> idsParaRemover = idsPermissaoInstrutorsVinculadas.stream()
-                    .filter(idPermissaoInstrutor -> !dto.getIdPermissaoVinculo().contains(idPermissaoInstrutor))
+                    .filter(idPermissaoInstrutor -> !dto.getIdPermissaoInstrutorVinculo().contains(idPermissaoInstrutor))
                     .toList();
             perfilPermissaoInstrutorRepository.deleteByPerfilIdAndPermissaoInstrutorIds(id, idsParaRemover);
 
             // Adicionar novas associações (para cada PermissaoInstrutor que não existe na tabela)
-            for (Long idPermissaoInstrutor : dto.getIdPermissaoVinculo()) {
+            for (Long idPermissaoInstrutor : dto.getIdPermissaoInstrutorVinculo()) {
                 boolean existe = perfilPermissaoInstrutorRepository.existsByPerfilIdAndPermissaoInstrutorId(id, idPermissaoInstrutor);
                 if (!existe) {
                     PermissaoInstrutor PermissaoInstrutor = permissaoInstrutorRespository.findById(idPermissaoInstrutor)
-                            .orElseThrow(() -> new EntityNotFoundException("Instrutor com ID " + idPermissaoInstrutor + " não encontrada"));
+                            .orElseThrow(() -> new EntityNotFoundException("Permissão com ID " + idPermissaoInstrutor + " não encontrada"));
 
                     PerfilPermissaoInstrutor novaAssociacao = new PerfilPermissaoInstrutor();
                     novaAssociacao.setPerfil(existente);
@@ -605,55 +590,6 @@ public class CadastroPerfilService {
                 }
             }
         }
-
-
-        // Atualizar associações com nivelPermissao
-//        if (dto.getPerfilNivelPermissaoDTO() != null) {
-//            // Recuperar as associações existentes (com a chave composta idPerfil e idNivelPermissao)
-//            List<Long> idsNivelPermissaoVinculadas = perfilNivelPermissaoRepository.findNivelPermissaoByPerfilId(id);
-//
-//            // Remover associações que não estão mais na lista
-//            List<Long> idsParaRemover = idsNivelPermissaoVinculadas.stream()
-//                    .filter(idNivelPermissao -> !dto.getPerfilNivelPermissaoDTO().stream()
-//                            .anyMatch(p -> p.getIdPermissao().equals(idNivelPermissao)))
-//                    .toList();
-//            perfilNivelPermissaoRepository.deleteByPerfilIdAndNivelPermissaoIds(id, idsParaRemover);
-//
-//            // Adicionar novas associações (para cada nivelPermissao que não existe na tabela)
-//            for (PerfilNivelPermissaoDTO perfilNivelPermissaoDTO : dto.getPerfilNivelPermissaoDTO()) {
-//                Long idNivelPermissao = perfilNivelPermissaoDTO.getIdPermissao();
-//
-//                boolean existe = perfilNivelPermissaoRepository.existsByPerfilIdAndNivelPermissaoId(id, idNivelPermissao);
-//                if (!existe) {
-//                    NivelPermissao nivelPermissao = nivelPermissaoRepository.findById(idNivelPermissao)
-//                            .orElseThrow(() -> new EntityNotFoundException("NivelPermissao com ID " + idNivelPermissao + " não encontrado"));
-//
-//                    PerfilNivelPermissao novaAssociacao = new PerfilNivelPermissao();
-//                    novaAssociacao.setPerfil(existente);
-//                    novaAssociacao.setNivelPermissao(nivelPermissao);
-//
-//                    // Salva a nova associação
-//                    perfilNivelPermissaoRepository.save(novaAssociacao);
-//
-//                    // Atualizar as visibilidades dentro de cada nível de permissão
-//                    if (perfilNivelPermissaoDTO.getPerfilNivelVisibilidadeDTO() != null) {
-//                        for (PerfilNivelVisibilidadeDTO visibilidadeDTO : perfilNivelPermissaoDTO.getPerfilNivelVisibilidadeDTO()) {
-//                            NivelVisibilidade nivelVisibilidade = nivelVisibilidadeRepository.findById(visibilidadeDTO.getIdVisibilidade())
-//                                    .orElseThrow(() -> new EntityNotFoundException("NivelVisibilidade com ID " + visibilidadeDTO.getIdVisibilidade() + " não encontrado"));
-//
-//                            // Agora, o nivelPermissao é corretamente definido no escopo
-//                            PerfilNivelVisibilidade novaVisibilidade = new PerfilNivelVisibilidade();
-//                            novaVisibilidade.setPerfil(existente);
-//                            novaVisibilidade.setNivelPermissao(nivelPermissao); // Associando com o NivelPermissao
-//                            novaVisibilidade.setNivelVisibilidade(nivelVisibilidade); // Associando com o NivelVisibilidade
-//
-//                            // Salva a nova associação de visibilidade
-//                            perfilNivelVisibilidadeRepository.save(novaVisibilidade);
-//                        }
-//                    }
-//                }
-//            }
-//        }
 
         // Salvar o perfil atualizado no repositório
         Perfil perfilAtualizado = repository.save(existente);
@@ -681,6 +617,7 @@ public class CadastroPerfilService {
 
         dto.setId(perfil.getId());
         dto.setNome(perfil.getNome());
+        dto.setEmail(perfil.getEmail());
 
         // Unidades vinculadas (Unico)
         if (perfil.getPerfilUnidadesVinculados() != null && !perfil.getPerfilUnidadesVinculados().isEmpty()) {
@@ -826,37 +763,17 @@ public class CadastroPerfilService {
                 .toList();
         dto.setNomePermissaoUnidadeVinculo(nomePermissaoUnidade);
 
-        // Níveis de Permissão e seus respectivos Níveis de Visibilidade
-//        List<PerfilNivelPermissaoDTO> nivelPermissaoDTOList = new ArrayList<>();
-//        for (PerfilNivelPermissao perfilNivelPermissao : perfil.getPerfilNiveisPermissoesVinculadas()) {
-//            PerfilNivelPermissaoDTO nivelPermissaoDTO = new PerfilNivelPermissaoDTO();
-//            nivelPermissaoDTO.setIdPermissao(perfilNivelPermissao.getNivelPermissao().getId());
-//            nivelPermissaoDTO.setNomePermissao(perfilNivelPermissao.getNivelPermissao().getNome());
-//
-//            // Associar Níveis de Visibilidade para este Nível de Permissão
-//            List<PerfilNivelVisibilidadeDTO> visibilidadeDTOList = new ArrayList<>();
-//            for (PerfilNivelVisibilidade perfilNivelVisibilidade : perfilNivelPermissao.getPerfil().getPerfilNivelVisibilidadeVinculada()) {
-//                PerfilNivelVisibilidadeDTO visibilidadeDTO = new PerfilNivelVisibilidadeDTO();
-//                visibilidadeDTO.setIdVisibilidade(perfilNivelVisibilidade.getNivelVisibilidade().getId());
-//                visibilidadeDTO.setNomeVisibilidade(perfilNivelVisibilidade.getNivelVisibilidade().getNome());
-//                visibilidadeDTOList.add(visibilidadeDTO);
-//            }
-//
-//            nivelPermissaoDTO.setPerfilNivelVisibilidadeDTO(visibilidadeDTOList);
-//            nivelPermissaoDTOList.add(nivelPermissaoDTO);
-//        }
-//
-//        dto.setPerfilNivelPermissaoDTO(nivelPermissaoDTOList);
-
         return dto;
     }
-
 
     // Método auxiliar: Converter DTO para entidade
     private Perfil convertToEntity(PerfilDTO dto) {
         Perfil perfil = new Perfil();
         perfil.setNome(dto.getNome());
+        perfil.setEmail(dto.getEmail());
+        perfil.setSenha(passwordEncoder.encode(dto.getSenha()));
 
         return perfil;
     }
+
 }

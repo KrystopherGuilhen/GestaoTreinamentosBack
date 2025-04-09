@@ -2,15 +2,17 @@ package gestao.treinamento.model.entidades;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@EqualsAndHashCode(callSuper = false)
 @Data
 @Entity
 @Table(name = "responsavel_tecnico")
-public class ResponsavelTecnico {
+public class ResponsavelTecnico extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,7 +26,7 @@ public class ResponsavelTecnico {
     private String cpf;
 
     @Column(name = "numero_conselho")
-    private Integer numeroConselho;
+    private String numeroConselho;
 
     @OneToMany(mappedBy = "responsavelTecnico", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude

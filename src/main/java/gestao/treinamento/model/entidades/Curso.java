@@ -2,21 +2,23 @@ package gestao.treinamento.model.entidades;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@EqualsAndHashCode(callSuper = false)
 @Data
 @Entity
 @Table(name = "curso")
-public class Curso {
+public class Curso extends Auditable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "nome", nullable = false, length = 150)
+    @Column(name = "nome", nullable = false, length = 250)
     private String nome;
 
     @Column(name = "conteudo_programatico", nullable = false, columnDefinition = "TEXT")
@@ -34,14 +36,7 @@ public class Curso {
     @Column(name = "periodo_validade_curso")
     private Integer periodoValidade;
 
-//    @Column(name = "valor_contrato_crm", nullable = false)
-//    private Double valorContratoCrm;
-
     @OneToMany(mappedBy = "curso", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
     private List<CursoModalidade> modalidadesVinculadas = new ArrayList<>();
-
-//    @OneToMany(mappedBy = "curso", cascade = CascadeType.ALL, orphanRemoval = true)
-//    @ToString.Exclude
-//    private List<CursoEmpresa> empresasVinculadas = new ArrayList<>();
 }

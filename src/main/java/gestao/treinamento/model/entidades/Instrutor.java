@@ -2,15 +2,17 @@ package gestao.treinamento.model.entidades;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@EqualsAndHashCode(callSuper = false)
 @Data
 @Entity
 @Table(name = "instrutor")
-public class Instrutor {
+public class Instrutor extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,11 +22,17 @@ public class Instrutor {
     @Column(name = "nome", nullable = false, length = 150)
     private String nome;
 
-    @Column(name = "cidade", nullable = false, length = 100)
-    private String cidade;
+    @Column(name = "id_estado", nullable = false)
+    private Long idEstado;
 
-    @Column(name = "estado", nullable = false, length = 2)
-    private String estado;
+    @Column(name = "nome_estado", nullable = false, length = 2)
+    private String nomeEstado;
+
+    @Column(name = "id_cidade", nullable = false)
+    private Long idCidade;
+
+    @Column(name = "nome_cidade", nullable = false, length = 100)
+    private String nomeCidade;
 
     @Column(name = "telefone", nullable = false, length = 20)
     private String telefone;
@@ -49,7 +57,7 @@ public class Instrutor {
     @ToString.Exclude
     private List<InstrutorFormacao> formacoes = new ArrayList<>();
 
-    @Column(name = "experiencia", length = 500)
+    @Column(name = "experiencia", columnDefinition = "TEXT")
     private String experiencia;
 
     @Column(name = "numero_registro_profissional")
@@ -61,9 +69,11 @@ public class Instrutor {
     @Column(name = "estado_registro_profissional", length = 2)
     private String estadoRegistroProfissional;
 
-//    @Lob
-//    @Column(name = "assinatura", columnDefinition = "LONGBLOB")
-//    private byte[] assinatura;
+    @Column(name = "id_estado_registro_profissional", nullable = false)
+    private Long idEstadoRegistroProfissional;
+
+    @Column(name = "nome_estado_registro_profissional", nullable = false, length = 2)
+    private String nomeEstadoRegistroProfissional;
 
     @OneToMany(mappedBy = "instrutor", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude

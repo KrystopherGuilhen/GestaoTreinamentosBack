@@ -20,4 +20,6 @@ public interface CadastroPerfilPermissaoPerfilRepository extends JpaRepository<P
     @Modifying
     @Query("DELETE FROM PerfilPermissaoPerfil ppp WHERE ppp.perfil.id = :perfilId AND ppp.permissaoPerfil.id IN :permissaoPerfilIds")
     void deleteByPerfilIdAndPermissaoPerfilIds(@Param("perfilId") Long perfilId, @Param("permissaoPerfilIds") List<Long> permissaoPerfilIds);
+
+    void deleteByPerfilId(Long perfilId);
 }

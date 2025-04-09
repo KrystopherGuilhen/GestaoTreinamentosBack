@@ -2,21 +2,26 @@ package gestao.treinamento.model.entidades;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+@EqualsAndHashCode(callSuper = false)
 @Data
 @Entity
 @Table(name = "turma")
-public class Turma {
+public class Turma extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
+
+    @Column(name = "ativo", nullable = false)
+    private Boolean ativo;
 
     @Column(name = "nome", nullable = false, length = 150)
     private String nome;
@@ -32,6 +37,15 @@ public class Turma {
 
     @Column(name = "numero_contrato_crm", nullable = false)
     private Integer numeroContratoCrm;
+
+    @Column(name = "id_cidade_treinamento", nullable = false)
+    private Long idCidadeTreinamento;
+
+    @Column(name = "nome_cidade_treinamento", nullable = false)
+    private String nomeCidadeTreinamento;
+
+    @Column(name = "multiplos_instrutores", nullable = false)
+    private Boolean multiplosInstrutores;
 
     @OneToMany(mappedBy = "turma", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
@@ -59,13 +73,17 @@ public class Turma {
 
     @OneToMany(mappedBy = "turma", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
+    private List<TurmaPalestra> turmaPalestrasVinculadas = new ArrayList<>();
+
+    @OneToMany(mappedBy = "turma", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
     private List<TurmaUnidade> turmaUnidadesVinculadas = new ArrayList<>();
 
     @OneToMany(mappedBy = "turma", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
     private List<TurmaInstrutorFormacao> turmaInstrutorFormacaosVinculados = new ArrayList<>();
 
-    @Column(name = "observacao_nr", length = 450)
+    @Column(name = "observacao_nr", columnDefinition = "TEXT")
     private String observacaoNr;
 
 }

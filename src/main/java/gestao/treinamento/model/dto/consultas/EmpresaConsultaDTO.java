@@ -13,4 +13,5 @@ public class EmpresaConsultaDTO {
     private Long id;
     private String nome;
     private String cnpj;
+    private String cpf;
 }
