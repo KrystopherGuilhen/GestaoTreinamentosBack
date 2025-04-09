@@ -137,3 +137,4 @@ ENTRYPOINT ["java", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,addre
 Observação Final: O projeto ao fim de sua inicialização faz uma verificação nas tabelas, ajustando dados para não haver inserção manual, inclusive de um perfil
 base para testes, com o usuário: "Administrador" email:"admin@teste.com.br", e a Senha: "teste@1234", para realizar as requisições de token via PostMan/Insomnia ou
 para demais testes no Front-End a tabela de perfil_nivel_permissao e perfil_permissao_perfil será preenchida.
+ - E para executar o projeto localmente incialize com o seguinte argumento em Emvironment variables: "spring.profiles.active=dev".
